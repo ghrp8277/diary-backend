@@ -105,6 +105,10 @@ export class AuthController {
   }
 
   // 아이디 찾기
+  @ApiOperation({
+    summary: '아이디 찾기',
+    description: '다이어리 앱 웹 아이디 찾기 api',
+  })
   @Get('/find/id')
   async findId(@Query('email') e_mail: string): Promise<string> {
     return await this.authService.findEmailById(e_mail);
