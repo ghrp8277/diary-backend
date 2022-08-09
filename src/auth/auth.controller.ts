@@ -96,6 +96,9 @@ export class AuthController {
   }
 
   // 이메일 번호 인증
+  @ApiOperation({
+    summary: '이메일 번호 인증',
+  })
   @Post('/email/:number')
   async emailAuthNumber(
     @Query('email') e_mail: string,
