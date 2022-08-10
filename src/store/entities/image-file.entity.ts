@@ -1,10 +1,20 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { UserMember } from 'src/auth/entities/user-member.entity';
+import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'image_file' })
 @Unique(['original_name'])
 export class ImageFile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @ManyToOne(() => UserMember, (user: UserMember) => user, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'user_member_id' })
+  user_member?: UserMember;
+
+  @Column({ nullable: true })
+  user_member_id: number
 
   @Column({
     type: 'varchar',

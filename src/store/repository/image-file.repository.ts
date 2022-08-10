@@ -3,7 +3,7 @@ import { EntityRepository, Repository } from 'typeorm';
 
 @EntityRepository(ImageFile)
 export class ImageFileRepository extends Repository<ImageFile> {
-  async imageFileSave(files: Express.Multer.File[]) {
+  async imageFileSave(user_id: number, files: Express.Multer.File[]) {
     try {
       files.forEach((imageFile) => {
         const {
@@ -14,6 +14,7 @@ export class ImageFileRepository extends Repository<ImageFile> {
         } = imageFile
   
         const imageFileModule = this.create({ 
+          user_member_id: user_id,
           original_name: originalname,
           mimeType: mimetype,
           file_path: path,
@@ -28,3 +29,7 @@ export class ImageFileRepository extends Repository<ImageFile> {
     }
   }
 }
+
+// 카테고리 
+// 1차 string
+// 2차 string

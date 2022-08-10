@@ -57,8 +57,9 @@ export class StoreController {
                     })
                 },
                 filename: function (req, file, callback) {
+                    const username = req.params.username
                     // 업로드한 폴더에 파일 이름이 동일한 경우 덮어쓰기 함
-                    callback(null, file.originalname)
+                    callback(null, username + '-' + file.originalname)
                 }
             }),
         }),
@@ -69,7 +70,7 @@ export class StoreController {
     ) {
         // 기존 이미지 파일이 저장되어 있다면? 
         // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
-        await this.storeService.imageFileSave(files);
+        await this.storeService.imageFileSave(username, files);
         return 'true'
     }
 }

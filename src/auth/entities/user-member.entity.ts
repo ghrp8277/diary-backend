@@ -12,6 +12,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { UserToken } from './user-token.entity';
 import { UserInfo } from './user-info.entity';
 import { Board } from 'src/board/entities/board.entity';
+import { ImageFile } from 'src/store/entities/image-file.entity';
 
 @Entity({ name: 'user_member' })
 @Unique(['username'])
@@ -38,6 +39,10 @@ export class UserMember extends BaseEntity {
   // 게시글
   @OneToMany(() => Board, (board) => board.user_member)
   boards: Board[];
+
+  // 이미지 파일
+  @OneToMany(() => ImageFile, (imageFile) => imageFile.user_member)
+  images: ImageFile[];
 
   @ApiProperty({
     example: 'test',
