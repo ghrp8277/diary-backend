@@ -1,6 +1,7 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity({ name: 'image_file' })
+@Unique(['original_name'])
 export class ImageFile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
