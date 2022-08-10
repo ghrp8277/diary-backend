@@ -63,6 +63,9 @@ export class AuthController {
   }
 
   // 비밀번호 변경
+  @ApiOperation({
+    summary: '비밀번호 변경',
+  })
   @Put('/change/password')
   async changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<boolean> {
     return await this.authService.changePassword(changePasswordDto);

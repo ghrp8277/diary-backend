@@ -1,9 +1,9 @@
-import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFile, Bind, UploadedFiles } from '@nestjs/common';
 import { join } from 'path';
 import { Public } from 'src/auth/jwt/jwt.guard';
 import { StoreService } from './store.service';
 import * as fs from 'fs';
-import { memoryStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import { ImageFileInterface } from 'src/store/interface/image.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -29,16 +29,24 @@ export class StoreController {
         return new StreamableFile(file);
     }
 
+    // 다중 파일 업로드
     @Post('/emoji/upload')
     @UseInterceptors(
         FileInterceptor('file', {
-        storage: memoryStorage(),
+            storage: diskStorage({
+                destination: function (req, file, cb) {
+                    const filePath = join(__dirname, '..', '..', 'files')
+
+                    cb(null, filePath)
+                }
+            }),
         }),
     )
     async uploadFile(
         @UploadedFile() file: Express.Multer.File
     ) {
         console.log(file)
+        
         return 'true'
     }
 
@@ -56,12 +64,13 @@ export class StoreController {
         }),
     )
     async uploadImageFile(@UploadedFile() file: Express.Multer.File) {
-        const imageFileModule: ImageFileInterface = {
-            name: file.originalname,
-            image_file: file.buffer.toString('utf8'),
-            mimeType: file.mimetype,
-        };
-        await this.storeService.imageFileSave(imageFileModule);
+        console.log(file)
+        // const imageFileModule: ImageFileInterface = {
+        //     name: file.originalname,
+        //     image_file: file.buffer.toString('utf8'),
+        //     mimeType: file.mimetype,
+        // };
+        // await this.storeService.imageFileSave(imageFileModule);
         return 'success image file upload';
     }
 }
