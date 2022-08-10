@@ -1,3 +1,4 @@
+import { HttpException } from '@nestjs/common';
 import { ImageFile } from 'src/store/entities/image-file.entity';
 import { EntityRepository, Repository } from 'typeorm';
 
@@ -25,7 +26,7 @@ export class ImageFileRepository extends Repository<ImageFile> {
       })
     } catch (error) {
       // 동일 파일이 저장되어있다면 에러에 대한 처리
-      console.log(error.message)
+      throw new HttpException('file name is unique error', 422)
     }
   }
 }
