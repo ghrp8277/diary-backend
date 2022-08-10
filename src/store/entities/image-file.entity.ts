@@ -9,16 +9,16 @@ export class ImageFile extends BaseEntity {
     type: 'varchar',
     length: 50,
     nullable: false,
-    comment: '이름',
+    comment: '이미지 파일명',
   })
-  name: string;
+  original_name: string;
 
   @Column({
-    type: 'longblob',
+    type: 'varchar',
     nullable: false,
-    comment: '이미지',
+    comment: '파일 경로',
   })
-  image_file: string;
+  file_path: string;
 
   @Column({
     type: 'varchar',
@@ -27,4 +27,10 @@ export class ImageFile extends BaseEntity {
     comment: '이미지 타입',
   })
   mimeType: string;
+
+  @Column({
+    nullable: false,
+    comment: '이미지 사이즈'
+  })
+  file_size: number;
 }

@@ -1,17 +1,17 @@
-import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFile, Bind, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFile, Bind, UploadedFiles, Query } from '@nestjs/common';
 import { join } from 'path';
 import { Public } from 'src/auth/jwt/jwt.guard';
 import { StoreService } from './store.service';
 import * as fs from 'fs';
 import { diskStorage, memoryStorage } from 'multer';
 import { ImageFileInterface } from 'src/store/interface/image.interface';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
-@Public()
 @Controller('store')
 export class StoreController {
     constructor(private readonly storeService: StoreService) {}
     // 기본 이미지 다운로드
+    @Public()
     @Get('/emoji/download/basic')
     async getFile(
         @Response({ passthrough: true }) res
@@ -29,23 +29,47 @@ export class StoreController {
         return new StreamableFile(file);
     }
 
-    // 다중 파일 업로드
-    @Post('/emoji/upload')
+    // 다중 파일 업로드 -> 최대 18개 파일 업로드
+    // 기존파일경로 -> 업로드 된 사용자 파일경로 / 이름 - 날짜 -> 업로드한 파일들
+    @Public()
+    @Post('/emoji/upload/:username')
     @UseInterceptors(
-        FileInterceptor('file', {
+        FilesInterceptor('file', 18, {
             storage: diskStorage({
-                destination: function (req, file, cb) {
-                    const filePath = join(__dirname, '..', '..', 'files')
+                destination: 
+                function (req, file, callback) {
+                    const filesPath = join(__dirname, '..', '..', 'files')
+                    const username = req.params.username
+                    const userFolderPath = join(filesPath, username)
+                    
+                    // 업로드한 유저 폴더 생성
+                    fs.readdir(userFolderPath, (err) => {
+                        // 해당 폴더가 없다면? 생성한다
+                        if (err) {
+                            fs.mkdirSync(userFolderPath, {
+                                // recursive: true 옵션을 주게 되면, 상위 디렉토리가 없더라도 한번에 생성할 수 있게 해준다.
+                                recursive: true
+                            })
 
-                    cb(null, filePath)
+                            callback(null, userFolderPath)
+                        } else {
+                            callback(null, userFolderPath)
+                        }
+                    })
+                },
+                filename: function (req, file, callback) {
+                    // 업로드한 폴더에 파일 이름이 동일한 경우 덮어쓰기 함
+                    callback(null, file.originalname)
                 }
             }),
         }),
     )
     async uploadFile(
-        @UploadedFile() file: Express.Multer.File
+        @Param('username') username: string,
+        @UploadedFiles() files: Express.Multer.File[]
     ) {
-        console.log(file)
+        // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
+        console.log(files)
         
         return 'true'
     }
@@ -64,13 +88,12 @@ export class StoreController {
         }),
     )
     async uploadImageFile(@UploadedFile() file: Express.Multer.File) {
-        console.log(file)
-        // const imageFileModule: ImageFileInterface = {
-        //     name: file.originalname,
-        //     image_file: file.buffer.toString('utf8'),
-        //     mimeType: file.mimetype,
-        // };
-        // await this.storeService.imageFileSave(imageFileModule);
+        const imageFileModule: ImageFileInterface = {
+            name: file.originalname,
+            image_file: file.buffer.toString('utf8'),
+            mimeType: file.mimetype,
+        };
+        await this.storeService.imageFileSave(imageFileModule);
         return 'success image file upload';
     }
 }
