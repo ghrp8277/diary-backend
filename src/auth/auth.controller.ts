@@ -154,6 +154,10 @@ export class AuthController {
   }
 
   // OAuth 카카오 로그인 or 회원가입 
+  @ApiOperation({
+    summary: '카카오 로그인',
+    description: '다이어리 앱 웹 카카오 로그인 및 회원가입 api',
+  })
   @Post('/kakao')
   async kakaoLogin(
     @Body() oauthCredentialsDto: OAuthCredentialsDto,
