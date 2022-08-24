@@ -5,14 +5,19 @@ import { ImageFileRepository } from './repository/image-file.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EmojiInfoRepository } from './repository/emoji-info.repository';
 
 @Module({
   imports: [
     ConfigModule,
     AuthModule,
-    TypeOrmModule.forFeature([ImageFileRepository]),
+    TypeOrmModule.forFeature([
+      ImageFileRepository,
+      EmojiInfoRepository
+    ]),
   ],
   providers: [StoreService, ConfigService],
-  controllers: [StoreController]
+  controllers: [StoreController],
+  exports: [StoreService]
 })
 export class StoreModule {}

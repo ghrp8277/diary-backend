@@ -13,6 +13,8 @@ import { BoardModule } from './board/board.module';
 import mailerConfig from './configs/mailer.config';
 import { JwtLoginGuard } from './auth/jwt/jwt.guard';
 import { StoreModule } from './store/store.module';
+import { ScheduleModule } from '@nestjs/schedule'
+import { TasksService } from './tasks/tasks.service';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { StoreModule } from './store/store.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => mailerConfig(configService),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     BoardModule,
     StoreModule,
@@ -42,7 +45,8 @@ import { StoreModule } from './store/store.module';
     {
       provide: APP_GUARD,
       useClass: JwtLoginGuard,
-    }
+    },
+    TasksService,
   ],
 })
 export class AppModule {}

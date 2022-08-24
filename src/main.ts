@@ -7,11 +7,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common'
 import * as passport from 'passport';
+import * as moment from 'moment'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const configService = app.get(ConfigService)
+
+  moment().locale('ko')
 
   app.setGlobalPrefix(configService.get('VERSION'))
 

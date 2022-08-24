@@ -1,10 +1,11 @@
-import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFile, Bind, UploadedFiles, Query } from '@nestjs/common';
+import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFiles, HttpException, HttpStatus } from '@nestjs/common';
 import { join } from 'path';
 import { Public } from 'src/auth/jwt/jwt.guard';
 import { StoreService } from './store.service';
 import * as fs from 'fs';
-import { diskStorage, memoryStorage } from 'multer';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import * as moment from 'moment';
 
 @Controller('store')
 export class StoreController {
@@ -33,7 +34,7 @@ export class StoreController {
     @Public()
     @Post('/emoji/upload/:username')
     @UseInterceptors(
-        FilesInterceptor('file', 18, {
+        FilesInterceptor('files', 18, {
             storage: diskStorage({
                 destination: 
                 function (req, file, callback) {
@@ -57,25 +58,45 @@ export class StoreController {
                     })
                 },
                 filename: function (req, file, callback) {
-                    const username = req.params.username
+                    const today = moment().format('YYYYMMDD HH:mm:ss')
                     // 업로드한 폴더에 파일 이름이 동일한 경우 덮어쓰기 함
-                    callback(null, username + '-' + file.originalname)
-                }
+                    callback(null, `${today}-${file.originalname}`)
+                },
             }),
+            fileFilter: function (req, file, callback) {
+                if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                    callback(null, true)
+                }
+                else callback(new HttpException(
+                    {
+                        message: 1,
+                        error: 'only image files are allowed!'
+                    },
+                    HttpStatus.BAD_REQUEST
+                ), false)
+            },
+            limits: {
+                // 필드명 사이즈 최대값
+                fieldNameSize: 150,
+                // 파일 사이즈 (2MB)
+                fileSize: 2097152,
+                // 파일 최대 개수
+                files: 18,
+            }
         }),
     )
     async uploadFile(
         @Param('username') username: string,
         @UploadedFiles() files: Express.Multer.File[]
     ) {
-        // 기존 이미지 파일이 저장되어 있다면? 
         // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
-        await this.storeService.imageFileSave(username, files);
-        return 'true'
+        return await this.storeService.imageFileSave(username, files);
+    }
+
+    @Public()
+    @Get('/test')
+    async test() {
+        const isDelete = await this.storeService.emojiInfoDelete(17)
+        console.log(isDelete)
     }
 }
-
-// if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-//   return callback(new Error('only image files are allowed!'), false)
-// }
-// callback(null, true);

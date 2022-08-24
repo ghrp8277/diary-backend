@@ -1,20 +1,45 @@
 import { UserMember } from 'src/auth/entities/user-member.entity';
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  BaseEntity,
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+import { EmojiInfo } from './emoji-info.entity';
+import { EmojiCategory } from './emoji-category.entity';
 
 @Entity({ name: 'image_file' })
-@Unique(['original_name'])
+@Unique(['file_path'])
 export class ImageFile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => UserMember, (user: UserMember) => user, {
-    nullable: true,
-  })
+  @ManyToOne(() => UserMember, (user: UserMember) => user)
   @JoinColumn({ name: 'user_member_id' })
   user_member?: UserMember;
 
-  @Column({ nullable: true })
-  user_member_id: number
+  @Column()
+  user_member_id: number;
+
+  @OneToOne(() => EmojiInfo, (emojiInfo) => emojiInfo.imageFile, {
+    // emojiinfo가 삭제될시 관련된 imagefile도 삭제
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  emojiInfo: EmojiInfo;
+
+  @OneToOne(() => EmojiCategory, (emojiCategory) => emojiCategory.imageFile, {
+    // emojiinfo가 삭제될시 관련된 imagefile도 삭제
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  emojiCategory: EmojiCategory;
 
   @Column({
     type: 'varchar',
@@ -41,7 +66,7 @@ export class ImageFile extends BaseEntity {
 
   @Column({
     nullable: false,
-    comment: '이미지 사이즈'
+    comment: '이미지 사이즈',
   })
   file_size: number;
 }
