@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmojiInfoRepository } from './repository/emoji-info.repository';
+import { EmojiCategoryRepository } from './repository/emoji-category.repository';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { EmojiInfoRepository } from './repository/emoji-info.repository';
     AuthModule,
     TypeOrmModule.forFeature([
       ImageFileRepository,
-      EmojiInfoRepository
+      EmojiInfoRepository,
+      EmojiCategoryRepository
     ]),
   ],
   providers: [StoreService, ConfigService],

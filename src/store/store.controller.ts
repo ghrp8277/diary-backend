@@ -1,4 +1,4 @@
-import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFiles, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, StreamableFile, Response, Post, UseInterceptors, UploadedFiles, HttpException, HttpStatus, Body, Req } from '@nestjs/common';
 import { join } from 'path';
 import { Public } from 'src/auth/jwt/jwt.guard';
 import { StoreService } from './store.service';
@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import * as moment from 'moment';
+import { UploadFileCategoryDto } from './dto/upload-file-category.dto';
 
 @Controller('store')
 export class StoreController {
@@ -87,10 +88,12 @@ export class StoreController {
     )
     async uploadFile(
         @Param('username') username: string,
+        @Body('form-data') form_data: string,
         @UploadedFiles() files: Express.Multer.File[]
     ) {
         // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
-        return await this.storeService.imageFileSave(username, files);
+        const json = JSON.parse(form_data)
+        return await this.storeService.imageFileSave(username, json, files);
     }
 
     @Public()

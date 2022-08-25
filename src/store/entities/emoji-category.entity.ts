@@ -20,8 +20,15 @@ export class EmojiCategory extends BaseEntity {
   imageFile: ImageFile;
 
   @Column({
+    name: 'product_name',
+    nullable: false,
+    comment: '상품명',
+    type: 'varchar'
+  })
+  product_name: string;
+
+  @Column({
     name: 'author_name',
-    default: '',
     nullable: false,
     comment: '작가명',
     type: 'varchar',

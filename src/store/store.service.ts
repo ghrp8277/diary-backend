@@ -6,6 +6,8 @@ import { HttpException } from '@nestjs/common';
 import { ImageFile } from './entities/image-file.entity';
 import { EmojiInfoRepository } from './repository/emoji-info.repository';
 import { EmojiInfo } from './entities/emoji-info.entity';
+import { EmojiCategoryRepository } from './repository/emoji-category.repository';
+import { UploadFileCategoryDto } from './dto/upload-file-category.dto';
 
 @Injectable()
 export class StoreService {
@@ -14,10 +16,12 @@ export class StoreService {
         private readonly imageFileRepository: ImageFileRepository,
         @InjectRepository(EmojiInfoRepository)
         private readonly emojiInfoRepository: EmojiInfoRepository,
+        @InjectRepository(EmojiCategoryRepository)
+        private readonly emojiCategoryRepository: EmojiCategoryRepository,
         private readonly authService: AuthService
     ) {}
     // 이미지 파일 업로드
-    async imageFileSave(username: string, files: Express.Multer.File[]): Promise<void> {
+    async imageFileSave(username: string, uploadFileCategoryDto: UploadFileCategoryDto, files: Express.Multer.File[]): Promise<void> {
         const user = await this.authService.findUserByUsername(username)
 
         try {
@@ -30,6 +34,12 @@ export class StoreService {
                     imageFile.id, 
                     emojiInfo
                 );
+
+                const emojiCategory = await this.emojiCategorySave(imageFile, uploadFileCategoryDto)
+
+                await this.imageFileRepository.update(imageFile.id, {
+                    emojiCategory
+                })
             })
         } catch (error) {
             // 동일 파일이 저장되어있다면 에러에 대한 처리
@@ -48,5 +58,10 @@ export class StoreService {
         return true
         // if (deleteResult) return true
         // else return false
+    }
+
+    // 이미지 카테고리 저장
+    async emojiCategorySave(imageFile: ImageFile, uploadFileCategoryDto: UploadFileCategoryDto) {
+        return await this.emojiCategoryRepository.emojiCategorySave(imageFile, uploadFileCategoryDto)
     }
 }
