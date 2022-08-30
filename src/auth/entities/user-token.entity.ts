@@ -5,7 +5,6 @@ import {
   Entity,
   OneToOne,
   PrimaryGeneratedColumn,
-  JoinColumn,
 } from 'typeorm';
 import { UserMember } from './user-member.entity';
 import { UserOAuth } from './user-oauth.entity';
@@ -15,10 +14,11 @@ export class UserToken extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @OneToOne(() => UserMember || UserOAuth, (user) => user.id, {
-    onDelete: 'CASCADE',
-  })
-  user_id: number;
+  @OneToOne(() => UserMember, (user) => user.user_token)
+  user_member: UserMember;
+
+  @OneToOne(() => UserOAuth, (user) => user.user_token)
+  user_oauth: UserOAuth;
 
   @Column({ type: 'text', nullable: false, comment: '리프레시토큰' })
   token: string;

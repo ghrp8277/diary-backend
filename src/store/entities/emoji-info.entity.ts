@@ -1,31 +1,62 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ImageFile } from './image-file.entity';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { EmojiConfirm } from './emoji-confirm.entity';
 
 @Entity({ name: 'emoji_info' })
 export class EmojiInfo extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @OneToOne(() => ImageFile, (imageFile) => imageFile.emojiInfo, {
-        cascade: true,
-    })
-    @JoinColumn()
-    imageFile: ImageFile;
+  @OneToMany(
+    () => EmojiConfirm,
+    (emojiConfirm: EmojiConfirm) => emojiConfirm.emojiInfo,
+  )
+  @JoinColumn()
+  emojiConfirm: EmojiConfirm;
 
-    @CreateDateColumn({
-        name: 'create_at',
-        nullable: false,
-        comment: '등록일',
-        default: () => 'NOW()',
-    })
-    createdAt: Date;
+  @Column({
+    name: 'product_name',
+    nullable: false,
+    comment: '상품명',
+    type: 'varchar',
+  })
+  product_name: string;
 
-    @Column({
-        default: false,
-        nullable: false,
-        name: 'is_confirm',
-        comment: '승인 여부',
-        type: 'boolean'
-    })
-    is_confirm: boolean;
+  @Column({
+    name: 'author_name',
+    nullable: false,
+    comment: '작가명',
+    type: 'varchar',
+  })
+  author_name: string;
+
+  @Column({
+    name: 'category',
+    nullable: false,
+    comment: '카테고리',
+    type: 'varchar',
+  })
+  category: string;
+
+  @Column({
+    name: 'tag',
+    nullable: false,
+    comment: '태그',
+    type: 'varchar',
+  })
+  tag: string;
+
+  @Column({
+    name: 'comment',
+    nullable: false,
+    comment: '이모티콘 설명',
+    type: 'text',
+  })
+  comment: string;
 }

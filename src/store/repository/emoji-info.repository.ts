@@ -1,36 +1,32 @@
-import { DeleteResult, EntityRepository, Repository } from 'typeorm';
+import { HttpException } from '@nestjs/common';
+import { EntityRepository, Repository } from 'typeorm';
+import { UploadFileInfoDto } from '../dto/upload-file-info.dto';
 import { EmojiInfo } from '../entities/emoji-info.entity';
-import { ImageFile } from '../entities/image-file.entity';
 
 @EntityRepository(EmojiInfo)
 export class EmojiInfoRepository extends Repository<EmojiInfo> {
-  async emojiInfoSave(imageFile: ImageFile): Promise<EmojiInfo> {
-    const emojiInfoModule = this.create({ 
-        imageFile
-    });
+  async createEmojiInfo(
+    uploadFileInfoDto: UploadFileInfoDto,
+  ): Promise<EmojiInfo> {
+    const emojiInfoModule = this.create(uploadFileInfoDto);
 
     return await this.save(emojiInfoModule);
   }
 
-  // async findEmojiInfoByCreateAt(date: Date): Promise<EmojiInfo[]> {
-  //   this.find({
-  //     createdAt: date
-  //   })
-  // }
-  
-  async deleteEmojiInfo(id: number): Promise<DeleteResult> {
-    const module = await this.findOne({
-      id
-    })
-
-    console.log(module)
-    return await this.delete(module)
-    // return await this.delete({
-    //   id: id
-    // })
+  async findAllEmojiInfo(username: string): Promise<EmojiInfo[]> {
+    try {
+      return await this.createQueryBuilder('emojiInfo')
+        .leftJoinAndSelect('emojiInfo.imageFile', 'imageFile')
+        .leftJoinAndSelect('imageFile.user_member', 'userMember')
+        .where('userMember.username = :username', { username })
+        .select('emojiInfo.createdAt', 'createdAt')
+        .addSelect('emojiInfo.is_confirm', 'is_confirm')
+        // .addSelect('emoji')
+        .addSelect('imageFile.original_name', 'original_name')
+        .addSelect('userMember.username', 'username')
+        .getRawMany();
+    } catch (error) {
+      new HttpException('not found emoji info', 404);
+    }
   }
 }
-
-// 카테고리 
-// 1차 string
-// 2차 string

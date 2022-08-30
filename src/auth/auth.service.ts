@@ -17,7 +17,6 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { UserInfoRepository } from './repository/user-info.repository';
 import { Cache } from 'cache-manager';
-import { UserCreateInterface } from './interface/user-create.interface';
 import { ChangePasswordDto } from './dto/password-change.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { OAuthCredentialsDto } from './dto/oauth-credential.dto';
@@ -39,20 +38,20 @@ export class AuthService {
     @InjectRepository(UserInfoRepository)
     private readonly userInfoRepository: UserInfoRepository,
     @InjectRepository(UserOAuthRepository)
-    private readonly userOAuthRepository: UserOAuthRepository
+    private readonly userOAuthRepository: UserOAuthRepository,
   ) {}
   // 회원가입
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<string> {
     const { email, username, password } = authCredentialsDto;
-    
+
     const userInfo = await this.userInfoRepository.registerUserInfo(email);
-    
-    const userCreateModule: UserCreateInterface = {
+
+    const userCreateModule = {
       username,
       password,
-      user_info_id: userInfo.id,
+      user_info: userInfo,
     };
-    const userMember = await this.userMemberRepository.createUser(userCreateModule);
+    await this.userMemberRepository.createUser(userCreateModule);
 
     return 'user create success!';
   }
@@ -72,7 +71,7 @@ export class AuthService {
   }
 
   async findUserOAuthByUsername(username: string): Promise<UserOAuth> {
-    return await this.userOAuthRepository.findUserOAuthByUsername(username)
+    return await this.userOAuthRepository.findUserOAuthByUsername(username);
   }
 
   // 아이디 찾기
@@ -84,7 +83,10 @@ export class AuthService {
   }
 
   // 이메일로 랜덤 비밀번호 전송
-  async sendMailRandomPassword(username: string, e_mail: string): Promise<boolean> {
+  async sendMailRandomPassword(
+    username: string,
+    e_mail: string,
+  ): Promise<boolean> {
     // 랜덤 비밀번호 생성
     const randomPassword = Math.random().toString(36).slice(2);
 
@@ -102,9 +104,8 @@ export class AuthService {
         subject: '임시 비밀번호 입니다.', // Subject line
         html: '임시 비밀번호 : ' + `<b> ${randomPassword}</b>`, // HTML body content
       });
-      return true
-    }
-    else return false
+      return true;
+    } else return false;
   }
 
   // 비밀번호 변경
@@ -113,11 +114,14 @@ export class AuthService {
 
     const user = await this.userMemberRepository.findUserByUsername(username);
     // 비밀번호 검증
-    const isPasswordCheck = await this.userMemberRepository.passwordCompare(password, user.password)
+    const isPasswordCheck = await this.userMemberRepository.passwordCompare(
+      password,
+      user.password,
+    );
     if (isPasswordCheck) {
       await this.userMemberRepository.changePassword(username, new_password);
-      return true
-    } else return false
+      return true;
+    } else return false;
   }
 
   // 로그인
@@ -127,7 +131,7 @@ export class AuthService {
     const user = await this.userMemberRepository.signIn(authLoginDto);
 
     const isActive = await this.userInfoRepository.userActiveMatch(
-      user.user_info_id['id'],
+      user.user_info.id,
     );
 
     // 유저정보가 저장되어 있는지 확인 및 활성화 되어 있는 유저 정보인지
@@ -137,7 +141,7 @@ export class AuthService {
 
       try {
         // 토큰정보가 저장되어 있는지 확인
-        if (!user.user_token_id) {
+        if (!user.user_token) {
           refreshToken = await this.createRefreshToken(user.id);
         } else {
           refreshToken = await this.findRefreshTokenByUsername(user.username);
@@ -151,8 +155,8 @@ export class AuthService {
 
       return {
         accessToken,
-        refreshToken
-      }
+        refreshToken,
+      };
     }
   }
 
@@ -228,10 +232,7 @@ export class AuthService {
       token,
     );
 
-    await this.userMemberRepository.registerRefreshToken(
-      user_id,
-      tokenModule.id,
-    );
+    await this.userMemberRepository.registerRefreshToken(user_id, tokenModule);
   }
 
   // 리프레시 토큰 찾기 #1 유저명
@@ -319,21 +320,28 @@ export class AuthService {
 
   // OAuth 인증 회원가입
   async oauthSignUp(oauthCredentialsDto: OAuthCredentialsDto): Promise<string> {
-    const { username, token } = oauthCredentialsDto
-    
-    const isMatched = await this.userOAuthRepository.findUserByUsername(username);
-    
+    const { username, token } = oauthCredentialsDto;
+
+    const isMatched = await this.userOAuthRepository.findUserByUsername(
+      username,
+    );
+
     if (!isMatched) {
       // oauth entity 등록
       const userOauth = await this.userOAuthRepository.createUser(username);
-      
+
       // token entity 등록
-      const userToken = await this.userTokenRespository.registerRefreshToken(token);
-    
-          // 토큰 아이디를 등록
-      await this.userOAuthRepository.registerRefreshToken(userOauth.id, userToken.id);
+      const userToken = await this.userTokenRespository.registerRefreshToken(
+        token,
+      );
+
+      // 토큰 아이디를 등록
+      await this.userOAuthRepository.registerRefreshToken(
+        userOauth.id,
+        userToken,
+      );
     }
-    
-    return 'user create success!'; 
+
+    return 'user create success!';
   }
 }

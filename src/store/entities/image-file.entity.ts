@@ -11,8 +11,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { EmojiInfo } from './emoji-info.entity';
-import { EmojiCategory } from './emoji-category.entity';
+import { EmojiConfirm } from './emoji-confirm.entity';
 
 @Entity({ name: 'image_file' })
 @Unique(['file_path'])
@@ -20,26 +19,13 @@ export class ImageFile extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => UserMember, (user: UserMember) => user)
-  @JoinColumn({ name: 'user_member_id' })
-  user_member?: UserMember;
-
-  @Column()
-  user_member_id: number;
-
-  @OneToOne(() => EmojiInfo, (emojiInfo) => emojiInfo.imageFile, {
-    // emojiinfo가 삭제될시 관련된 imagefile도 삭제
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  emojiInfo: EmojiInfo;
-
-  @OneToOne(() => EmojiCategory, (emojiCategory) => emojiCategory.imageFile, {
-    // emojiinfo가 삭제될시 관련된 imagefile도 삭제
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  emojiCategory: EmojiCategory;
+  @ManyToOne(
+    () => EmojiConfirm,
+    (emojiConfirm: EmojiConfirm) => emojiConfirm.imageFiles,
+    { cascade: true },
+  )
+  @JoinColumn({ name: 'emoji_confirm_id', referencedColumnName: 'id' })
+  emojiConfirm: EmojiConfirm;
 
   @Column({
     type: 'varchar',

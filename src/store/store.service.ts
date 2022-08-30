@@ -1,67 +1,69 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ImageFileRepository } from './repository/image-file.repository';
-import { AuthService } from '../auth/auth.service'
-import { HttpException } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { ImageFile } from './entities/image-file.entity';
 import { EmojiInfoRepository } from './repository/emoji-info.repository';
+import { EmojiConfirm } from './entities/emoji-confirm.entity';
+import { EmojiConfirmRepository } from './repository/emoji-confirm.repository';
+import { UploadFileInfoDto } from './dto/upload-file-info.dto';
+import { UserMember } from 'src/auth/entities/user-member.entity';
 import { EmojiInfo } from './entities/emoji-info.entity';
-import { EmojiCategoryRepository } from './repository/emoji-category.repository';
-import { UploadFileCategoryDto } from './dto/upload-file-category.dto';
 
 @Injectable()
 export class StoreService {
-    constructor(
-        @InjectRepository(ImageFileRepository)
-        private readonly imageFileRepository: ImageFileRepository,
-        @InjectRepository(EmojiInfoRepository)
-        private readonly emojiInfoRepository: EmojiInfoRepository,
-        @InjectRepository(EmojiCategoryRepository)
-        private readonly emojiCategoryRepository: EmojiCategoryRepository,
-        private readonly authService: AuthService
-    ) {}
-    // 이미지 파일 업로드
-    async imageFileSave(username: string, uploadFileCategoryDto: UploadFileCategoryDto, files: Express.Multer.File[]): Promise<void> {
-        const user = await this.authService.findUserByUsername(username)
+  constructor(
+    @InjectRepository(ImageFileRepository)
+    private readonly imageFileRepository: ImageFileRepository,
+    @InjectRepository(EmojiInfoRepository)
+    private readonly emojiInfoRepository: EmojiInfoRepository,
+    @InjectRepository(EmojiConfirmRepository)
+    private readonly emojiConfirmRepository: EmojiConfirmRepository,
+    private readonly authService: AuthService,
+  ) {}
+  // 이미지 파일 업로드
+  async imageFileUpload(
+    username: string,
+    uploadFileInfoDto: UploadFileInfoDto,
+    files: Express.Multer.File[],
+  ): Promise<void> {
+    const user = await this.authService.findUserByUsername(username);
 
-        try {
-            files.forEach(async (file) => {
-                const imageFile = await this.imageFileRepository.imageFileSave(user.id, file);
+    // 이모티콘 정보 저장
+    const emojiInfo = await this.createEmojiInfo(uploadFileInfoDto);
 
-                const emojiInfo = await this.emojiInfoSave(imageFile);
+    // 이모티콘 승인단계 저장
+    const emojiCofirm = await this.createEmojiConfirm(user, emojiInfo);
 
-                await this.imageFileRepository.updateImageFileByEmojiInfo(
-                    imageFile.id, 
-                    emojiInfo
-                );
+    // 이미지 파일 정보 저장
+    files.forEach(async (file) => {
+      await this.createImageFile(emojiCofirm, file);
+    });
+  }
 
-                const emojiCategory = await this.emojiCategorySave(imageFile, uploadFileCategoryDto)
+  // 이모티콘 승인 단계 정보 저장
+  async createEmojiConfirm(
+    userMember: UserMember,
+    emojiInfo: EmojiInfo,
+  ): Promise<EmojiConfirm> {
+    return await this.emojiConfirmRepository.createEmojiInfo(
+      userMember,
+      emojiInfo,
+    );
+  }
 
-                await this.imageFileRepository.update(imageFile.id, {
-                    emojiCategory
-                })
-            })
-        } catch (error) {
-            // 동일 파일이 저장되어있다면 에러에 대한 처리
-            throw new HttpException('file name is unique error', 422)
-        }
-    }
+  // 이모티콘 정보 저장
+  async createEmojiInfo(uploadFileInfoDto: UploadFileInfoDto) {
+    return await this.emojiInfoRepository.createEmojiInfo(uploadFileInfoDto);
+  }
 
-    // 이모지 정보 저장
-    async emojiInfoSave(imageFile: ImageFile): Promise<EmojiInfo> {
-        return await this.emojiInfoRepository.emojiInfoSave(imageFile);
-    }
+  // 이미지 파일 정보 저장
+  async createImageFile(emojiConfirm: EmojiConfirm, file: Express.Multer.File) {
+    return await this.imageFileRepository.createImageFile(emojiConfirm, file);
+  }
 
-    // 이미지 파일 삭제
-    async emojiInfoDelete(id: number): Promise<boolean> {
-        const deleteResult = await this.emojiInfoRepository.deleteEmojiInfo(id)
-        return true
-        // if (deleteResult) return true
-        // else return false
-    }
-
-    // 이미지 카테고리 저장
-    async emojiCategorySave(imageFile: ImageFile, uploadFileCategoryDto: UploadFileCategoryDto) {
-        return await this.emojiCategoryRepository.emojiCategorySave(imageFile, uploadFileCategoryDto)
-    }
+  // 특정 유저 이모지 승인단계 정보 가져오기
+  async findAllByEmojiConfirm(username: string) {
+    return await this.emojiConfirmRepository.findAllEmojiConfirm(username);
+  }
 }

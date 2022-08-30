@@ -5,18 +5,22 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { EntityRepository, Repository } from 'typeorm';
-import { AuthCredentialsDto } from '../dto/auth-credential.dto';
 import { UserMember } from '../entities/user-member.entity';
 import * as bcrypt from 'bcrypt';
-import { UserCreateInterface } from '../interface/user-create.interface';
 import { AuthLoginDto } from '../dto/auth-login.dto';
+import { UserInfo } from '../entities/user-info.entity';
+import { UserToken } from '../entities/user-token.entity';
 
 @EntityRepository(UserMember)
 export class UserMemberRepository extends Repository<UserMember> {
   // 회원가입
-  async createUser(userCreateInterface: UserCreateInterface): Promise<UserMember> {
+  async createUser(userCreateInterface: {
+    username: string;
+    password: string;
+    user_info: UserInfo;
+  }): Promise<UserMember> {
     try {
-      const { username, password, user_info_id } = userCreateInterface;
+      const { username, password, user_info } = userCreateInterface;
 
       const hashedPassword = await this.changePasswordByHashedPassword(
         password,
@@ -25,7 +29,7 @@ export class UserMemberRepository extends Repository<UserMember> {
       const user = this.create({
         username,
         password: hashedPassword,
-        user_info_id,
+        user_info,
       });
 
       return await this.save(user);
@@ -72,14 +76,16 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   // 아이디 찾기 - 계정으로 찾기
   async findUsernameByUserMember(username: string): Promise<UserMember> {
-    const userMember = await this.findOne({ username })
-    return userMember
+    const userMember = await this.findOne({ username });
+    return userMember;
   }
 
   // 비밀번호 변경
   async changePassword(username: string, password: string): Promise<boolean> {
     try {
-      const hashedPassword = await this.changePasswordByHashedPassword(password);
+      const hashedPassword = await this.changePasswordByHashedPassword(
+        password,
+      );
       const userMember = await this.findOne({ username });
 
       await this.update(userMember.id, {
@@ -88,7 +94,7 @@ export class UserMemberRepository extends Repository<UserMember> {
 
       return true;
     } catch (error) {
-      return false
+      return false;
     }
   }
 
@@ -107,15 +113,18 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   // 비밀번호 검증
   async passwordCompare(password1: string, password2: string) {
-    return await bcrypt.compare(password1, password2)
-  } 
+    return await bcrypt.compare(password1, password2);
+  }
 
   // 토큰 저장
-  async registerRefreshToken(user_id: number, token_id: number): Promise<void> {
+  async registerRefreshToken(
+    user_id: number,
+    user_token: UserToken,
+  ): Promise<void> {
     const user = await this.findUserById(user_id);
 
     await this.update(user.id, {
-      user_token_id: token_id,
+      user_token,
     });
   }
 
@@ -131,7 +140,7 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   async findRefreshTokenId(username: string): Promise<number> {
     const user = await this.findUserByUsername(username);
-    return user.user_token_id;
+    return user.user_token.id;
   }
 
   async findRefreshTokenByUsername(username: string): Promise<string> {
@@ -186,7 +195,7 @@ export class UserMemberRepository extends Repository<UserMember> {
         .getRawOne();
 
       await this.update(idObj.id, {
-        user_token_id: null,
+        user_token: null,
       });
       return idObj.token_id;
     } catch (error) {

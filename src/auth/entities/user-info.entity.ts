@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   Unique,
@@ -21,10 +22,8 @@ export class UserInfo extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @OneToOne(() => UserMember, (userMember) => userMember.id, {
-    onDelete: 'CASCADE',
-  })
-  user_member_id: number;
+  @OneToOne(() => UserMember, (userMember) => userMember.user_info)
+  user_member: UserMember;
 
   @Column({
     type: 'varchar',
