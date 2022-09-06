@@ -22,7 +22,7 @@ export class UserOAuth extends BaseEntity {
     cascade: true,
   })
   @JoinColumn({ name: 'user_token_id', referencedColumnName: 'id' })
-  user_token: UserToken;
+  userToken: UserToken;
 
   // 게시글
   @OneToMany(() => Board, (board) => board.user_oauth)

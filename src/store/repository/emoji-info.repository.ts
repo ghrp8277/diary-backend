@@ -12,21 +12,4 @@ export class EmojiInfoRepository extends Repository<EmojiInfo> {
 
     return await this.save(emojiInfoModule);
   }
-
-  async findAllEmojiInfo(username: string): Promise<EmojiInfo[]> {
-    try {
-      return await this.createQueryBuilder('emojiInfo')
-        .leftJoinAndSelect('emojiInfo.imageFile', 'imageFile')
-        .leftJoinAndSelect('imageFile.user_member', 'userMember')
-        .where('userMember.username = :username', { username })
-        .select('emojiInfo.createdAt', 'createdAt')
-        .addSelect('emojiInfo.is_confirm', 'is_confirm')
-        // .addSelect('emoji')
-        .addSelect('imageFile.original_name', 'original_name')
-        .addSelect('userMember.username', 'username')
-        .getRawMany();
-    } catch (error) {
-      new HttpException('not found emoji info', 404);
-    }
-  }
 }

@@ -49,7 +49,7 @@ export class AuthService {
     const userCreateModule = {
       username,
       password,
-      user_info: userInfo,
+      userInfo,
     };
     await this.userMemberRepository.createUser(userCreateModule);
 
@@ -131,7 +131,7 @@ export class AuthService {
     const user = await this.userMemberRepository.signIn(authLoginDto);
 
     const isActive = await this.userInfoRepository.userActiveMatch(
-      user.user_info.id,
+      user.userInfo.id,
     );
 
     // 유저정보가 저장되어 있는지 확인 및 활성화 되어 있는 유저 정보인지
@@ -141,7 +141,7 @@ export class AuthService {
 
       try {
         // 토큰정보가 저장되어 있는지 확인
-        if (!user.user_token) {
+        if (!user.userToken) {
           refreshToken = await this.createRefreshToken(user.id);
         } else {
           refreshToken = await this.findRefreshTokenByUsername(user.username);

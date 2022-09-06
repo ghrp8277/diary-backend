@@ -17,10 +17,10 @@ export class UserMemberRepository extends Repository<UserMember> {
   async createUser(userCreateInterface: {
     username: string;
     password: string;
-    user_info: UserInfo;
+    userInfo: UserInfo;
   }): Promise<UserMember> {
     try {
-      const { username, password, user_info } = userCreateInterface;
+      const { username, password, userInfo } = userCreateInterface;
 
       const hashedPassword = await this.changePasswordByHashedPassword(
         password,
@@ -29,7 +29,7 @@ export class UserMemberRepository extends Repository<UserMember> {
       const user = this.create({
         username,
         password: hashedPassword,
-        user_info,
+        userInfo,
       });
 
       return await this.save(user);
@@ -119,12 +119,12 @@ export class UserMemberRepository extends Repository<UserMember> {
   // 토큰 저장
   async registerRefreshToken(
     user_id: number,
-    user_token: UserToken,
+    userToken: UserToken,
   ): Promise<void> {
     const user = await this.findUserById(user_id);
 
     await this.update(user.id, {
-      user_token,
+      userToken,
     });
   }
 
@@ -140,7 +140,7 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   async findRefreshTokenId(username: string): Promise<number> {
     const user = await this.findUserByUsername(username);
-    return user.user_token.id;
+    return user.userToken.id;
   }
 
   async findRefreshTokenByUsername(username: string): Promise<string> {
@@ -195,7 +195,7 @@ export class UserMemberRepository extends Repository<UserMember> {
         .getRawOne();
 
       await this.update(idObj.id, {
-        user_token: null,
+        userToken: null,
       });
       return idObj.token_id;
     } catch (error) {

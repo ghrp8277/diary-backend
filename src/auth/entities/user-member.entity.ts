@@ -13,6 +13,7 @@ import { UserToken } from './user-token.entity';
 import { UserInfo } from './user-info.entity';
 import { Board } from 'src/board/entities/board.entity';
 import { EmojiConfirm } from 'src/store/entities/emoji-confirm.entity';
+import { Favorite } from 'src/buyer/entities/favorite.entity';
 
 @Entity({ name: 'user_member' })
 @Unique(['username'])
@@ -20,27 +21,30 @@ export class UserMember extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @OneToOne(() => UserToken, (userToken) => userToken.user_member, {
+  @OneToOne(() => UserToken, (userToken) => userToken.userMember, {
     nullable: true,
     cascade: true,
   })
   @JoinColumn({ name: 'user_token_id', referencedColumnName: 'id' })
-  user_token: UserToken;
+  userToken: UserToken;
 
-  @OneToOne(() => UserInfo, (userInfo: UserInfo) => userInfo.user_member, {
+  @OneToOne(() => UserInfo, (userInfo: UserInfo) => userInfo.userMember, {
     nullable: true,
     cascade: true,
   })
   @JoinColumn({ name: 'user_info_id', referencedColumnName: 'id' })
-  user_info: UserInfo;
+  userInfo: UserInfo;
+
+  @OneToOne(() => Favorite, (favorite: Favorite) => favorite.userMember)
+  favorite: Favorite;
 
   // 게시글
   @OneToMany(() => Board, (board) => board.user_member)
   boards: Board[];
 
   // 이미지 파일
-  @OneToMany(() => EmojiConfirm, (emojiConfirm) => emojiConfirm.user_member)
-  emoji_confirms: EmojiConfirm[];
+  @OneToMany(() => EmojiConfirm, (emojiConfirm) => emojiConfirm.userMember)
+  emojiConfirms: EmojiConfirm[];
 
   @ApiProperty({
     example: 'test',

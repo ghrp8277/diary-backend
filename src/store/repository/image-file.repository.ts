@@ -2,15 +2,21 @@ import { ImageFile } from 'src/store/entities/image-file.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import { EmojiConfirm } from '../entities/emoji-confirm.entity';
 import { HttpException } from '@nestjs/common';
+import * as ip from 'ip';
 
 @EntityRepository(ImageFile)
 export class ImageFileRepository extends Repository<ImageFile> {
   async createImageFile(
     emojiConfirm: EmojiConfirm,
+    username: string,
     file: Express.Multer.File,
   ): Promise<ImageFile> {
     try {
       const { originalname, mimetype, path, size } = file;
+
+      const before = path.substring(0, path.indexOf(username))
+      const address: string = ip.address()
+      const image_url = path.replace(before, `http://${address}:3000/`)
 
       const imageFileModule = this.create({
         emojiConfirm,
@@ -18,6 +24,7 @@ export class ImageFileRepository extends Repository<ImageFile> {
         mimeType: mimetype,
         file_path: path,
         file_size: size,
+        image_url,
       });
 
       return this.save(imageFileModule);

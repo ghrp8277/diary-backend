@@ -15,9 +15,15 @@ import { JwtLoginGuard } from './auth/jwt/jwt.guard';
 import { StoreModule } from './store/store.module';
 import { ScheduleModule } from '@nestjs/schedule'
 import { TasksService } from './tasks/tasks.service';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { BuyerModule } from './buyer/buyer.module';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '../', 'files')
+    }),
     ConfigModule.forRoot({ envFilePath: ['dev.env', '.env'] }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -34,6 +40,7 @@ import { TasksService } from './tasks/tasks.service';
     AuthModule,
     BoardModule,
     StoreModule,
+    BuyerModule,
   ],
   controllers: [AppController, BoardController],
   providers: [

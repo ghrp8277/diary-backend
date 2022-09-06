@@ -22,8 +22,8 @@ export class UserInfo extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @OneToOne(() => UserMember, (userMember) => userMember.user_info)
-  user_member: UserMember;
+  @OneToOne(() => UserMember, (userMember) => userMember.userInfo)
+  userMember: UserMember;
 
   @Column({
     type: 'varchar',

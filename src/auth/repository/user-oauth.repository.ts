@@ -41,10 +41,10 @@ export class UserOAuthRepository extends Repository<UserOAuth> {
   // 토큰 저장
   async registerRefreshToken(
     user_id: number,
-    user_token: UserToken,
+    userToken: UserToken,
   ): Promise<void> {
     await this.update(user_id, {
-      user_token,
+      userToken,
     });
   }
 }

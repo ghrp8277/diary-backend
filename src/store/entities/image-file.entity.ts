@@ -22,7 +22,6 @@ export class ImageFile extends BaseEntity {
   @ManyToOne(
     () => EmojiConfirm,
     (emojiConfirm: EmojiConfirm) => emojiConfirm.imageFiles,
-    { cascade: true },
   )
   @JoinColumn({ name: 'emoji_confirm_id', referencedColumnName: 'id' })
   emojiConfirm: EmojiConfirm;
@@ -43,10 +42,19 @@ export class ImageFile extends BaseEntity {
   file_path: string;
 
   @Column({
+    name: 'image_url',
+    nullable: false,
+    comment: '이모티콘 경로',
+    type: 'varchar'
+  })
+  image_url: string;
+
+  @Column({
     type: 'varchar',
     length: 50,
     nullable: false,
     comment: '이미지 타입',
+    name: 'mime_type'
   })
   mimeType: string;
 

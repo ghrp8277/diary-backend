@@ -1,4 +1,5 @@
 import { UserMember } from 'src/auth/entities/user-member.entity';
+import { Product } from 'src/buyer/entities/product.entity';
 import {
   BaseEntity,
   Column,
@@ -27,7 +28,7 @@ export class EmojiConfirm extends BaseEntity {
 
   @ManyToOne(() => UserMember, (user: UserMember) => user)
   @JoinColumn({ name: 'user_member_id', referencedColumnName: 'id' })
-  user_member: UserMember;
+  userMember: UserMember;
 
   @OneToMany(() => ImageFile, (imageFile: ImageFile) => imageFile.emojiConfirm)
   imageFiles: ImageFile[];
@@ -35,6 +36,9 @@ export class EmojiConfirm extends BaseEntity {
   @OneToOne(() => EmojiInfo, (emojiInfo: EmojiInfo) => emojiInfo.emojiConfirm)
   @JoinColumn({ name: 'emoji_info_id', referencedColumnName: 'id' })
   emojiInfo: EmojiInfo;
+
+  @OneToOne(() => Product, (product: Product) => product.emojiConfirm)
+  product: Product;
 
   @CreateDateColumn({
     name: 'create_at',

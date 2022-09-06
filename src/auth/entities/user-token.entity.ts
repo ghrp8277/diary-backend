@@ -14,11 +14,11 @@ export class UserToken extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: number;
 
-  @OneToOne(() => UserMember, (user) => user.user_token)
-  user_member: UserMember;
+  @OneToOne(() => UserMember, (user) => user.userToken)
+  userMember: UserMember;
 
-  @OneToOne(() => UserOAuth, (user) => user.user_token)
-  user_oauth: UserOAuth;
+  @OneToOne(() => UserOAuth, (user) => user.userToken)
+  userOauth: UserOAuth;
 
   @Column({ type: 'text', nullable: false, comment: '리프레시토큰' })
   token: string;

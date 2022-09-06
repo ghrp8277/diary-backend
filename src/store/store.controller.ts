@@ -11,18 +11,27 @@ import {
   HttpStatus,
   Body,
   Req,
+  Render,
+  Query,
+  Res,
 } from '@nestjs/common';
 import { join } from 'path';
 import { Public } from 'src/auth/jwt/jwt.guard';
-import { StoreService } from './store.service';
+import { StoreService } from './service/store.service';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import * as moment from 'moment';
+import { CreateNoticeDto } from './dto/create-notice.dto';
+import { StoreNoticeService } from './service/store.notice.service';
+import { Response as ExResponse } from 'express';
 
 @Controller('store')
 export class StoreController {
-  constructor(private readonly storeService: StoreService) {}
+  constructor(
+    private readonly storeService: StoreService,
+    private readonly storeNoticeService: StoreNoticeService,
+  ) {}
   // 기본 이미지 다운로드
   @Public()
   @Get('/emoji/download/basic')
@@ -50,7 +59,10 @@ export class StoreController {
         destination: function (req, file, callback) {
           const filesPath = join(__dirname, '..', '..', 'files');
           const username = req.params.username;
-          const userFolderPath = join(filesPath, username);
+          const userFolderPath = join(
+            filesPath,
+            join(username, moment().format('YYYYMMDD-HH:mm:ss')),
+          );
 
           // 업로드한 유저 폴더 생성
           fs.readdir(userFolderPath, (err) => {
@@ -68,9 +80,8 @@ export class StoreController {
           });
         },
         filename: function (req, file, callback) {
-          const today = moment().format('YYYYMMDD HH:mm:ss');
           // 업로드한 폴더에 파일 이름이 동일한 경우 덮어쓰기 함
-          callback(null, `${today}-${file.originalname}`);
+          callback(null, `${file.originalname}`);
         },
       }),
       fileFilter: function (req, file, callback) {
@@ -108,10 +119,56 @@ export class StoreController {
     return await this.storeService.imageFileUpload(username, json, files);
   }
 
-  // 이모지 파일 정보들을 가져온다
+  // 이모티콘 상품들의 제안관리 정보를 가져온다.
   @Public()
-  @Get('/:username/emoji/info')
+  @Get('/:username/emoji/products/confirm')
   async getEmojiFilesInfo(@Param('username') username: string) {
-    return await this.storeService.findAllByEmojiConfirm(username);
+    return await this.storeService.findAllEmojiConfirmByUsername(username);
+  }
+
+  // 특정 이모티콘 상품의 제안관리 정보를 가져온다.
+  @Public()
+  @Get('/:username/emoji/products/:id/confirm')
+  async getEmojiFileInfo(
+    @Param('username') username: string,
+    @Param('id') id: number,
+  ) {
+    return await this.storeService.findEmojiConfirmById(id);
+  }
+
+  // 공지사항 전체 정보를 가져온다.
+  @Public()
+  @Get('/:username/studio/notices')
+  // @Render('index')
+  async getAllNotice(@Param('username') username: string) {
+    return await this.storeNoticeService.findAllNotice();
+  }
+
+  // 공지사항 내용을 가져온다.
+  @Public()
+  @Get('/:username/studio/notices/:id')
+  async getNotice(
+    @Res() res: ExResponse,
+    @Param('username') username: string,
+    @Param('id') id: number,
+    @Query('file_name') file_name: string,
+  ) {
+    const notice = await this.storeNoticeService.findNotice(id);
+    return res.render(file_name, function (err, html) {
+      res.json({
+        notice,
+        html,
+      });
+    });
+  }
+
+  // 공지사항 내용을 생성한다.
+  @Public()
+  @Post('/:username/studio/notice')
+  async createNotice(
+    @Param('username') username: string,
+    @Body() notice: CreateNoticeDto,
+  ) {
+    return await this.storeNoticeService.createNotice(notice);
   }
 }
