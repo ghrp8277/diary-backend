@@ -135,6 +135,7 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   async findUserByUsername(username: string): Promise<UserMember> {
     const user = await this.findOne({ username });
+
     return user;
   }
 

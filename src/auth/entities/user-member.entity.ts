@@ -24,6 +24,7 @@ export class UserMember extends BaseEntity {
   @OneToOne(() => UserToken, (userToken) => userToken.userMember, {
     nullable: true,
     cascade: true,
+    eager: true,
   })
   @JoinColumn({ name: 'user_token_id', referencedColumnName: 'id' })
   userToken: UserToken;
@@ -31,6 +32,7 @@ export class UserMember extends BaseEntity {
   @OneToOne(() => UserInfo, (userInfo: UserInfo) => userInfo.userMember, {
     nullable: true,
     cascade: true,
+    eager: true,
   })
   @JoinColumn({ name: 'user_info_id', referencedColumnName: 'id' })
   userInfo: UserInfo;

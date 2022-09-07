@@ -2,35 +2,26 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   Post,
   Put,
   Query,
-  Req,
   Res,
-  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import { Response } from 'express';
-import { JwtLoginGuard, Public } from './jwt/jwt.guard';
-import { GetUser } from './decorator/get-user.decorator';
+import { Public } from './jwt/jwt.guard';
 import { UserMember } from './entities/user-member.entity';
-import { AuthEmailDto } from './dto/auth-email.dto';
 import { ChangePasswordDto } from './dto/password-change.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import {
   ApiBody,
   ApiCreatedResponse,
   ApiOperation,
-  ApiParam,
-  ApiQuery,
   ApiResponse,
   ApiTags,
-  ApiConsumes,
   PickType,
 } from '@nestjs/swagger';
 import { OAuthCredentialsDto } from './dto/oauth-credential.dto';
@@ -45,20 +36,28 @@ export class AuthController {
     summary: '회원가입',
     description: '다이어리 앱 웹 회원가입 api',
   })
-  @ApiBody({ 
+  @ApiBody({
     schema: {
       properties: {
-        username: { type: "string", default: "test", description: "아이디" },
-        password: { type: "string", default: "testtest", description: "비밀번호" },
-        email: { type: "string", default: "test@gmail.com", description: "이메일" }
-      }
-    }
+        username: { type: 'string', default: 'test', description: '아이디' },
+        password: {
+          type: 'string',
+          default: 'testtest',
+          description: '비밀번호',
+        },
+        email: {
+          type: 'string',
+          default: 'test@gmail.com',
+          description: '이메일',
+        },
+      },
+    },
   })
   @Post('/signup')
   async signUp(
     @Body() authCredentialsDto: AuthCredentialsDto,
   ): Promise<string> {
-    console.log(authCredentialsDto)
+    console.log(authCredentialsDto);
     return await this.authService.signUp(authCredentialsDto);
   }
 
@@ -67,7 +66,9 @@ export class AuthController {
     summary: '비밀번호 변경',
   })
   @Put('/change/password')
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto): Promise<boolean> {
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+  ): Promise<boolean> {
     return await this.authService.changePassword(changePasswordDto);
   }
 
@@ -93,7 +94,7 @@ export class AuthController {
   @Put('/email/password')
   async emailAuthPassword(
     @Query('username') username: string,
-    @Query('email') e_mail: string
+    @Query('email') e_mail: string,
   ): Promise<boolean> {
     return await this.authService.sendMailRandomPassword(username, e_mail);
   }
@@ -128,20 +129,24 @@ export class AuthController {
   @ApiCreatedResponse({
     description: '로그인 인증 성공',
     type: () => {
-      return PickType(UserMember, ['username'] as const)
-    }
+      return PickType(UserMember, ['username'] as const);
+    },
   })
   @ApiResponse({
     status: 401,
     description: '로그인 실패',
   })
-  @ApiBody({ 
+  @ApiBody({
     schema: {
       properties: {
-        username: { type: "string", default: "test", description: "아이디" },
-        password: { type: "string", default: "testtest", description: "비밀번호" },
-      }
-    }
+        username: { type: 'string', default: 'test', description: '아이디' },
+        password: {
+          type: 'string',
+          default: 'testtest',
+          description: '비밀번호',
+        },
+      },
+    },
   })
   @Post('/signin')
   async signIn(
@@ -156,15 +161,13 @@ export class AuthController {
     return res.json(jwt);
   }
 
-  // OAuth 카카오 로그인 or 회원가입 
+  // OAuth 카카오 로그인 or 회원가입
   @ApiOperation({
     summary: '카카오 로그인',
     description: '다이어리 앱 웹 카카오 로그인 및 회원가입 api',
   })
   @Post('/kakao')
-  async kakaoLogin(
-    @Body() oauthCredentialsDto: OAuthCredentialsDto,
-  ) {
-      return await this.authService.oauthSignUp(oauthCredentialsDto);
+  async kakaoLogin(@Body() oauthCredentialsDto: OAuthCredentialsDto) {
+    return await this.authService.oauthSignUp(oauthCredentialsDto);
   }
 }

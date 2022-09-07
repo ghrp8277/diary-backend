@@ -151,10 +151,10 @@ export class StoreController {
     @Res() res: ExResponse,
     @Param('username') username: string,
     @Param('id') id: number,
-    @Query('file_name') file_name: string,
   ) {
     const notice = await this.storeNoticeService.findNotice(id);
-    return res.render(file_name, function (err, html) {
+
+    return res.render(notice.file_name, function (err, html) {
       res.json({
         notice,
         html,
