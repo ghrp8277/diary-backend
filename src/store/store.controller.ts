@@ -11,8 +11,6 @@ import {
   HttpStatus,
   Body,
   Req,
-  Render,
-  Query,
   Res,
 } from '@nestjs/common';
 import { join } from 'path';
@@ -51,7 +49,6 @@ export class StoreController {
 
   // 다중 파일 업로드 -> 최대 18개 파일 업로드
   // 기존파일경로 -> 업로드 된 사용자 파일경로 / 이름 - 날짜 -> 업로드한 파일들
-  @Public()
   @Post('/:username/emoji/upload')
   @UseInterceptors(
     FilesInterceptor('files', 18, {
@@ -120,46 +117,28 @@ export class StoreController {
   }
 
   // 이모티콘 상품들의 제안관리 정보를 가져온다.
-  @Public()
   @Get('/:username/emoji/products/confirm')
   async getEmojiFilesInfo(@Param('username') username: string) {
     return await this.storeService.findAllEmojiConfirmByUsername(username);
   }
 
-  // 특정 이모티콘 상품의 제안관리 정보를 가져온다.
-  @Public()
-  @Get('/:username/emoji/products/:id/confirm')
-  async getEmojiFileInfo(
-    @Param('username') username: string,
-    @Param('id') id: number,
-  ) {
-    return await this.storeService.findEmojiConfirmById(id);
-  }
-
   // 공지사항 전체 정보를 가져온다.
-  @Public()
-  @Get('/:username/studio/notices')
-  // @Render('index')
-  async getAllNotice(@Param('username') username: string) {
+  @Get('/studio/notices')
+  async getAllNotice() {
     return await this.storeNoticeService.findAllNotice();
   }
 
   // 공지사항 내용을 가져온다.
-  @Public()
-  @Get('/:username/studio/notices/:id')
-  async getNotice(
-    @Res() res: ExResponse,
-    @Param('username') username: string,
-    @Param('id') id: number,
-  ) {
+  @Get('/studio/notices/:id')
+  async getNotice(@Res() res: ExResponse, @Param('id') id: number) {
     const notice = await this.storeNoticeService.findNotice(id);
 
-    return res.render(notice.file_name, function (err, html) {
-      res.json({
-        notice,
-        html,
-      });
-    });
+    return res.render(notice.file_name);
+    // return res.render(notice.file_name, function (err, html) {
+    //   res.json({
+    //     html,
+    //   });
+    // });
   }
 
   // 공지사항 내용을 생성한다.

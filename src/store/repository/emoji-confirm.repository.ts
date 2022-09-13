@@ -18,7 +18,9 @@ export class EmojiConfirmRepository extends Repository<EmojiConfirm> {
     return await this.save(emojiConfirmModule);
   }
 
-  async findAllEmojiConfirmByUsername(username: string): Promise<EmojiConfirm[]> {
+  async findAllEmojiConfirmByUsername(
+    username: string,
+  ): Promise<EmojiConfirm[]> {
     try {
       return await this.createQueryBuilder('emojiConfirm')
         .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
@@ -28,22 +30,12 @@ export class EmojiConfirmRepository extends Repository<EmojiConfirm> {
         .addSelect('emojiConfirm.createdAt', 'createdAt')
         .addSelect('emojiConfirm.is_confirm', 'is_confirm')
         .addSelect('emojiInfo.product_name', 'product_name')
+        .addSelect('emojiInfo.category', 'category')
+        .addSelect('emojiInfo.tag', 'tag')
+        .addSelect('emojiInfo.comment', 'comment')
         .getRawMany();
     } catch (error) {
       new HttpException('not found emoji info', 404);
     }
-  }
-
-  async findEmojiConfirmById(id: number): Promise<EmojiConfirm> {
-    return await this.createQueryBuilder('emojiConfirm')
-    .innerJoin('emojiConfirm.emojiInfo', 'emojiInfo')
-    .where('emojiConfirm.id = :id', { id })
-    .select('emojiConfirm.createdAt', 'createdAt')
-    .addSelect('emojiConfirm.is_confirm', 'is_confirm')
-    .addSelect('emojiInfo.product_name', 'product_name')
-    .addSelect('emojiInfo.category', 'category')
-    .addSelect('emojiInfo.tag', 'tag')
-    .addSelect('emojiInfo.comment', 'comment')
-    .getRawOne()
   }
 }

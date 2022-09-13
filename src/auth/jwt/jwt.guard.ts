@@ -10,8 +10,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtExpiredException } from 'src/common/exceptions/jwt-expired.exception';
 import { AuthService } from '../auth.service';
 
-const IS_PUBLIC_KEY = 'isPublic'
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
+const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 // https://kiwi-wiki.tistory.com/27
 // AuthGuard -> strategy 자동으로 실행하는 기능
@@ -28,12 +28,14 @@ export class JwtLoginGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     const { authorization, ispublic } = request.headers;
 
-    const isPublic = ispublic ? JSON.parse(ispublic) : this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ])
+    const isPublic = ispublic
+      ? JSON.parse(ispublic)
+      : this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+          context.getHandler(),
+          context.getClass(),
+        ]);
 
-    if (isPublic) return isPublic
+    if (isPublic) return isPublic;
 
     if (authorization === undefined) {
       throw new HttpException('Token 전송 안됨', HttpStatus.UNAUTHORIZED);
@@ -44,7 +46,7 @@ export class JwtLoginGuard extends AuthGuard('jwt') {
     try {
       // 엑세스 토큰 유효기간 검증
       await this.authService.tokenVerify(token);
-      
+
       return true;
     } catch (error) {
       // 엑세스 토큰 기간 만료시

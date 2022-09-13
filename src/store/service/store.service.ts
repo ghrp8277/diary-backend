@@ -92,9 +92,4 @@ export class StoreService {
       username,
     );
   }
-
-  // 특정 유저 이모지 승인단계 정보 가져오기
-  async findEmojiConfirmById(id: number) {
-    return await this.emojiConfirmRepository.findEmojiConfirmById(id);
-  }
 }
