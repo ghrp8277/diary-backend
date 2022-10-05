@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { UserMember } from 'src/auth/entities/user-member.entity';
-import { UserOAuth } from 'src/auth/entities/user-oauth.entity';
 import { EntityManager } from 'typeorm';
 import { SetBoardDto } from './dto/board-set.dto';
 import { Board } from './entities/board.entity';
@@ -22,29 +21,23 @@ export class BoardService {
     private readonly emotionFileRepository: EmotionFileRepository,
 
     @InjectEntityManager() private readonly entityManager: EntityManager,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
   ) {}
 
   // 게시글 작성
-  async boardCreate(username: string, createBoardDto: SetBoardDto): Promise<string> {
+  async boardCreate(
+    username: string,
+    createBoardDto: SetBoardDto,
+  ): Promise<string> {
     const { title, content, datetime, image_files_path } = createBoardDto;
-    
-    let user: UserMember | UserOAuth;
-    let isMember: boolean = false
 
-    if (username.includes('kakao')) {
-      user = await this.authService.findUserOAuthByUsername(username);
-    } else {
-      user = await this.authService.findUserByUsername(username);
-      isMember = true
-    }
-    
+    const user = await this.authService.findUserByUsername(username);
+
     const boardModule: BoardInterface = {
       title,
       content,
       datetime,
-      isMember
-    }
+    };
 
     // 게시글 작성
     const board = await this.boardRepository.createBoard(user.id, boardModule);
@@ -55,13 +48,19 @@ export class BoardService {
   }
 
   // 이모티콘 업로드
-  async emotionUpload(image_files_path: string[], boardId: number): Promise<void> {
-    await this.emotionFileRepository.emotionUpload(image_files_path, boardId)
+  async emotionUpload(
+    image_files_path: string[],
+    boardId: number,
+  ): Promise<void> {
+    await this.emotionFileRepository.emotionUpload(image_files_path, boardId);
   }
 
   // 이모티콘 수정
-  async emotionModify(image_file_path: string[], boardId: number): Promise<void> {
-    await this.emotionFileRepository.emotionModify(image_file_path, boardId)
+  async emotionModify(
+    image_file_path: string[],
+    boardId: number,
+  ): Promise<void> {
+    await this.emotionFileRepository.emotionModify(image_file_path, boardId);
   }
 
   // 게시글 조회
@@ -81,13 +80,13 @@ export class BoardService {
 
   // 게시글 수정 (이모티콘 포함)
   async boardUpdate(id: number, updateBoardDto: SetBoardDto): Promise<void> {
-    const { title, content, datetime, image_files_path } = updateBoardDto
+    const { title, content, datetime, image_files_path } = updateBoardDto;
 
     const boardModule = {
       title,
       content,
       datetime,
-    }
+    };
     // 이모티콘 수정
     await this.emotionModify(image_files_path, id);
 

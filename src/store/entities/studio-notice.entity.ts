@@ -21,6 +21,15 @@ export class StudioNotice extends BaseEntity {
   is_important: boolean;
 
   @Column({
+    name: 'is_visible',
+    nullable: false,
+    default: true,
+    comment: '게시글 보이기 여부',
+    type: 'boolean',
+  })
+  is_visible: boolean;
+
+  @Column({
     name: 'title',
     nullable: false,
     comment: '공지사항 제목',

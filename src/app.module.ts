@@ -13,7 +13,7 @@ import { BoardModule } from './board/board.module';
 import mailerConfig from './configs/mailer.config';
 import { JwtLoginGuard } from './auth/jwt/jwt.guard';
 import { StoreModule } from './store/store.module';
-import { ScheduleModule } from '@nestjs/schedule'
+import { ScheduleModule } from '@nestjs/schedule';
 import { TasksService } from './tasks/tasks.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -22,7 +22,7 @@ import { BuyerModule } from './buyer/buyer.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '../', 'files')
+      rootPath: join(__dirname, '../', 'files'),
     }),
     ConfigModule.forRoot({ envFilePath: ['dev.env', '.env'] }),
     TypeOrmModule.forRootAsync({

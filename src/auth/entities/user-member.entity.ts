@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
+  ManyToOne,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserToken } from './user-token.entity';
@@ -37,7 +38,7 @@ export class UserMember extends BaseEntity {
   @JoinColumn({ name: 'user_info_id', referencedColumnName: 'id' })
   userInfo: UserInfo;
 
-  @OneToOne(() => Favorite, (favorite: Favorite) => favorite.userMember)
+  @OneToMany(() => Favorite, (favorite: Favorite) => favorite.userMember)
   favorite: Favorite;
 
   // 게시글

@@ -31,7 +31,7 @@ async function bootstrap() {
   app.useStaticAssets(path.join(__dirname, '../', 'files'), {
     prefix: `/${configService.get('VERSION')}/`,
   });
-  app.setBaseViewsDir(path.join(__dirname, '../', 'public', 'notice'));
+  app.setBaseViewsDir(path.join(__dirname, '../', 'public'));
   app.setViewEngine('hbs');
 
   // pipe

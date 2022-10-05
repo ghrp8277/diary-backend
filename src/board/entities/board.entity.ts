@@ -1,5 +1,4 @@
 import { UserMember } from 'src/auth/entities/user-member.entity';
-import { UserOAuth } from 'src/auth/entities/user-oauth.entity';
 import {
   BaseEntity,
   JoinColumn,
@@ -8,10 +7,6 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   OneToMany,
-  BeforeInsert,
-  BeforeUpdate,
-  CreateDateColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { EmotionFile } from './emotion-file.entity';
 
@@ -24,19 +19,10 @@ export class Board extends BaseEntity {
     nullable: true,
   })
   @JoinColumn({ name: 'user_member_id' })
-  user_member?: UserMember;
+  user_member: UserMember;
 
   @Column({ nullable: true })
-  user_member_id: number
-
-  @ManyToOne(() => UserOAuth, (user: UserOAuth) => user, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'user_oauth_id' })
-  user_oauth?: UserOAuth;
-
-  @Column({ nullable: true })
-  user_oauth_id: number
+  user_member_id: number;
 
   @Column({
     type: 'varchar',
@@ -53,7 +39,7 @@ export class Board extends BaseEntity {
   content: string;
 
   @OneToMany(() => EmotionFile, (emotionFile) => emotionFile.board, {
-    cascade: ["remove"]
+    cascade: ['remove'],
   })
   emotion_files: EmotionFile[];
 

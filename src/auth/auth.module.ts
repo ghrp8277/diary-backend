@@ -11,12 +11,13 @@ import { UserTokenRepository } from './repository/user-token.repository';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { UserInfoRepository } from './repository/user-info.repository';
 import cacheConfig from 'src/configs/cache.config';
-import { UserOAuthRepository } from './repository/user-oauth.repository';
 
 @Module({
   imports: [
     ConfigModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule.register({
+      defaultStrategy: ['jwt'],
+    }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -32,7 +33,6 @@ import { UserOAuthRepository } from './repository/user-oauth.repository';
       UserMemberRepository,
       UserTokenRepository,
       UserInfoRepository,
-      UserOAuthRepository,
     ]),
   ],
   controllers: [AuthController],

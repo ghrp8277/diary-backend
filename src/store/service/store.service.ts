@@ -8,11 +8,13 @@ import { EmojiConfirmRepository } from '../repository/emoji-confirm.repository';
 import { UploadFileInfoDto } from '../dto/upload-file-info.dto';
 import { UserMember } from 'src/auth/entities/user-member.entity';
 import { EmojiInfo } from '../entities/emoji-info.entity';
-import { BuyerService } from 'src/buyer/buyer.service';
+import { BuyerService } from 'src/buyer/services/buyer.service';
+import { Connection } from 'typeorm';
 
 @Injectable()
 export class StoreService {
   constructor(
+    private connection: Connection,
     @InjectRepository(ImageFileRepository)
     private readonly imageFileRepository: ImageFileRepository,
     @InjectRepository(EmojiInfoRepository)
@@ -21,7 +23,9 @@ export class StoreService {
     private readonly emojiConfirmRepository: EmojiConfirmRepository,
     private readonly authService: AuthService,
     private readonly buyerService: BuyerService,
-  ) {}
+  ) {
+    this.connection = connection;
+  }
   // 이미지 파일 업로드
   async imageFileUpload(
     username: string,
@@ -30,8 +34,8 @@ export class StoreService {
   ): Promise<{
     is_confirm: any;
     product_name: string;
-    category: string;
-    tag: string;
+    // category: string;
+    // tag: string;
   }> {
     const user = await this.authService.findUserByUsername(username);
 
@@ -42,7 +46,7 @@ export class StoreService {
     const emojiCofirm = await this.createEmojiConfirm(user, emojiInfo);
 
     // buyer -> 상품 저장
-    await this.buyerService.createProduct(emojiCofirm);
+    const product = await this.buyerService.createProduct(emojiCofirm);
 
     // 이미지 파일 정보 저장
     files.forEach(async (file) => {
@@ -52,8 +56,8 @@ export class StoreService {
     return {
       is_confirm: emojiCofirm.is_confirm,
       product_name: emojiInfo.product_name,
-      category: emojiInfo.category,
-      tag: emojiInfo.tag,
+      // category: emojiInfo.category,
+      // tag: emojiInfo.tag,
     };
   }
 
@@ -87,9 +91,10 @@ export class StoreService {
   }
 
   // 특정 유저 이모지 승인단계 전체 정보 가져오기
-  async findAllEmojiConfirmByUsername(username: string) {
+  async findAllEmojiConfirmByUsername(username: string, page: number) {
     return await this.emojiConfirmRepository.findAllEmojiConfirmByUsername(
       username,
+      page,
     );
   }
 }

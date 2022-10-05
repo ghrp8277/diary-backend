@@ -60,15 +60,15 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   // 아이디 찾기
   async findEmailByUserMember(e_mail: string): Promise<UserMember> {
-    const userMember = await this.createQueryBuilder('user_member')
+    const userMember = await this.createQueryBuilder('userMember')
       .innerJoinAndSelect(
-        'user_member.user_info_id',
-        'user_info',
-        'user_info.e_mail = :e_mail',
+        'userMember.userInfo',
+        'userInfo',
+        'userInfo.e_mail = :e_mail',
         { e_mail },
       )
-      .select('user_member.id', 'id')
-      .addSelect('user_member.username', 'username')
+      .select('userMember.id', 'id')
+      .addSelect('userMember.username', 'username')
       .getRawOne();
 
     return userMember;
@@ -145,36 +145,13 @@ export class UserMemberRepository extends Repository<UserMember> {
   }
 
   async findRefreshTokenByUsername(username: string): Promise<string> {
-    const userToken = await this.createQueryBuilder('user_member')
-      .innerJoinAndSelect('user_member.user_token_id', 'user_token')
-      .select('user_token.token', 'token')
-      .where('user_member.username = :username', { username })
+    const userToken = await this.createQueryBuilder('userMember')
+      .innerJoinAndSelect('userMember.userToken', 'userToken')
+      .select('userToken.token', 'token')
+      .where('userMember.username = :username', { username })
       .getRawOne();
 
     return userToken.token;
-  }
-
-  async findRefreshTokenByToken(token: string): Promise<string> {
-    try {
-      const userToken = await this.createQueryBuilder('user_member')
-        .innerJoinAndSelect('user_member.user_token_id', 'user_token')
-        .where('user_token.token = :token', { token })
-        .select('user_token.token', 'token')
-        .getRawOne();
-
-      return userToken.token;
-    } catch (error) {
-      const message: string = error.message;
-
-      if (message.search('undefined') > 0) {
-        throw new HttpException(
-          'Your token has expired, send a refresh token to renew it',
-          HttpStatus.FORBIDDEN,
-        );
-      } else {
-        throw new HttpException(message, HttpStatus.FORBIDDEN);
-      }
-    }
   }
 
   async findUserByWithoutPassword(userId: number): Promise<UserMember | null> {
@@ -188,18 +165,20 @@ export class UserMemberRepository extends Repository<UserMember> {
 
   async removeRefreshToken(token: string): Promise<string> {
     try {
-      const idObj = await this.createQueryBuilder('user_member')
-        .leftJoinAndSelect('user_member.user_token_id', 'user_token')
-        .where('user_token.token = :token', { token })
-        .select('user_token.id', 'token_id')
-        .addSelect('user_member.id', 'id')
+      const userMember = await this.createQueryBuilder('userMember')
+        .leftJoinAndSelect('userMember.userToken', 'userToken')
+        .where('userToken.token = :token', { token })
+        .select('userToken.id', 'token_id')
+        .addSelect('userMember.id', 'id')
         .getRawOne();
 
-      await this.update(idObj.id, {
+      await this.update(userMember.id, {
         userToken: null,
       });
-      return idObj.token_id;
+
+      return userMember.token_id;
     } catch (error) {
+      console.log(error.message);
       // throw new UnauthorizedException(error.message);
       throw new UnauthorizedException(
         'Your token has expired, send a refresh token to renew it',

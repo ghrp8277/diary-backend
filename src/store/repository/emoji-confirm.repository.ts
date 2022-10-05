@@ -20,20 +20,39 @@ export class EmojiConfirmRepository extends Repository<EmojiConfirm> {
 
   async findAllEmojiConfirmByUsername(
     username: string,
-  ): Promise<EmojiConfirm[]> {
+    page: number,
+  ): Promise<{
+    proposals: EmojiConfirm[];
+    totalPage: number;
+  }> {
+    const perPage = 5;
+    const skip = perPage * page - perPage;
+
     try {
-      return await this.createQueryBuilder('emojiConfirm')
-        .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
-        .leftJoinAndSelect('emojiConfirm.userMember', 'userMember')
-        .where('userMember.username = :username', { username })
-        .select('emojiConfirm.id', 'id')
-        .addSelect('emojiConfirm.createdAt', 'createdAt')
-        .addSelect('emojiConfirm.is_confirm', 'is_confirm')
-        .addSelect('emojiInfo.product_name', 'product_name')
-        .addSelect('emojiInfo.category', 'category')
-        .addSelect('emojiInfo.tag', 'tag')
-        .addSelect('emojiInfo.comment', 'comment')
-        .getRawMany();
+      const [list, cnt] = await Promise.all([
+        this.createQueryBuilder('emojiConfirm')
+          .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
+          .leftJoinAndSelect('emojiConfirm.userMember', 'userMember')
+          .where('userMember.username = :username', { username })
+          .select('emojiConfirm.id', 'id')
+          .addSelect('emojiConfirm.createdAt', 'createdAt')
+          .addSelect('emojiConfirm.is_confirm', 'is_confirm')
+          .addSelect('emojiInfo.product_name', 'product_name')
+          .addSelect('emojiInfo.category', 'category')
+          .addSelect('emojiInfo.tag', 'tag')
+          .addSelect('emojiInfo.comment', 'comment')
+          .limit(perPage)
+          .offset(skip)
+          .getRawMany(),
+        this.count(),
+      ]);
+
+      const totalPage = Math.ceil(cnt / perPage);
+
+      return {
+        proposals: list,
+        totalPage,
+      };
     } catch (error) {
       new HttpException('not found emoji info', 404);
     }

@@ -117,15 +117,21 @@ export class StoreController {
   }
 
   // 이모티콘 상품들의 제안관리 정보를 가져온다.
-  @Get('/:username/emoji/products/confirm')
-  async getEmojiFilesInfo(@Param('username') username: string) {
-    return await this.storeService.findAllEmojiConfirmByUsername(username);
+  @Get('/:username/emoji/:page/products/confirm')
+  async getEmojiFilesInfo(
+    @Param('username') username: string,
+    @Param('page') page: number,
+  ) {
+    return await this.storeService.findAllEmojiConfirmByUsername(
+      username,
+      page,
+    );
   }
 
   // 공지사항 전체 정보를 가져온다.
-  @Get('/studio/notices')
-  async getAllNotice() {
-    return await this.storeNoticeService.findAllNotice();
+  @Get('/studio/:page/notices')
+  async getAllNotice(@Param('page') page: number) {
+    return await this.storeNoticeService.findNoticeByPage(page);
   }
 
   // 공지사항 내용을 가져온다.
@@ -133,7 +139,9 @@ export class StoreController {
   async getNotice(@Res() res: ExResponse, @Param('id') id: number) {
     const notice = await this.storeNoticeService.findNotice(id);
 
-    return res.render(notice.file_name);
+    const path = `store/${notice.file_name}`;
+
+    return res.render(path);
     // return res.render(notice.file_name, function (err, html) {
     //   res.json({
     //     html,

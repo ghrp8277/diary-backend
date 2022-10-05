@@ -1,6 +1,7 @@
 import {
   CACHE_MANAGER,
   HttpException,
+  HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
@@ -20,8 +21,8 @@ import { Cache } from 'cache-manager';
 import { ChangePasswordDto } from './dto/password-change.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { OAuthCredentialsDto } from './dto/oauth-credential.dto';
-import { UserOAuthRepository } from './repository/user-oauth.repository';
-import { UserOAuth } from './entities/user-oauth.entity';
+import { compare, hash } from 'bcrypt';
+import { emailHtml } from './auth.mail';
 
 @Injectable()
 export class AuthService {
@@ -37,8 +38,6 @@ export class AuthService {
     private readonly userTokenRespository: UserTokenRepository,
     @InjectRepository(UserInfoRepository)
     private readonly userInfoRepository: UserInfoRepository,
-    @InjectRepository(UserOAuthRepository)
-    private readonly userOAuthRepository: UserOAuthRepository,
   ) {}
   // 회원가입
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<string> {
@@ -68,10 +67,6 @@ export class AuthService {
 
   async findUserByUsername(username: string): Promise<UserMember> {
     return await this.userMemberRepository.findUserByUsername(username);
-  }
-
-  async findUserOAuthByUsername(username: string): Promise<UserOAuth> {
-    return await this.userOAuthRepository.findUserOAuthByUsername(username);
   }
 
   // 아이디 찾기
@@ -140,16 +135,20 @@ export class AuthService {
       let accessToken = '';
 
       try {
-        // 토큰정보가 저장되어 있는지 확인
+        // 로그인 할때는 기존 리프레시 토큰은 무조건 삭제 후 다시 생성
         if (!user.userToken) {
           refreshToken = await this.createRefreshToken(user.id);
         } else {
           refreshToken = await this.findRefreshTokenByUsername(user.username);
+
+          await this.removeRefreshToken(refreshToken);
+
+          refreshToken = await this.createRefreshToken(user.id);
         }
-        // 리프레시 토큰이 만료되었는지 검증 후 엑세스 토큰 생성
-        accessToken = await this.createAccessToken(refreshToken);
       } catch (error) {
-        refreshToken = await this.createRefreshToken(user.id);
+        console.log(error.message);
+      } finally {
+        // 리프레시 토큰이 만료되었는지 검증 후 엑세스 토큰 생성
         accessToken = await this.createAccessToken(refreshToken);
       }
 
@@ -170,8 +169,8 @@ export class AuthService {
       await this.mailerService.sendMail({
         to: e_mail, // list of receivers
         from: `${this.configService.get('MAIL_USER')}@naver.com`, // sender address
-        subject: '이메일 인증 요청 메일입니다.', // Subject line
-        html: '6자리 인증 코드 : ' + `<b> ${number}</b>`, // HTML body content
+        subject: '[Diary Studio] 계정 가입 인증번호', // Subject line
+        html: emailHtml(number), // HTML body content
       });
 
       // 캐시에 난수코드를 저장한다
@@ -191,7 +190,7 @@ export class AuthService {
 
       if (number === saveNumber) {
         // 캐시에 저장된 난수코드를 삭제한다
-        await this.cacheManager.del(e_mail);
+
         return true;
       }
       return false;
@@ -216,11 +215,14 @@ export class AuthService {
       REFRESH_TOKEN_EXP,
     );
 
+    const hashedRefreshToken = await hash(refreshToken, 10);
+
     // 토큰 DB에 저장
     await this.registerRefreshToken({
       user_id,
-      token: refreshToken,
+      token: hashedRefreshToken,
     });
+
     return refreshToken;
   }
 
@@ -239,20 +241,34 @@ export class AuthService {
   async findRefreshTokenByUsername(username: string): Promise<string> {
     const refreshToken =
       await this.userMemberRepository.findRefreshTokenByUsername(username);
+
     return refreshToken;
   }
 
-  // 리프레시 토큰 찾기 #2 토큰
-  async findRefreshTokenByToken(token: string): Promise<string> {
+  // 리프레시 토큰 찾기 #2 토큰 검증일때 사용
+  async findRefreshTokenByHashMatched(
+    token: string,
+    username: string,
+  ): Promise<string> {
     const refreshToken =
-      await this.userMemberRepository.findRefreshTokenByToken(token);
-    return refreshToken;
+      await this.userMemberRepository.findRefreshTokenByUsername(username);
+
+    const isMatched = await compare(token, refreshToken);
+
+    if (isMatched) {
+      const accessToken = await this.createAccessToken(token);
+
+      return accessToken;
+    }
+
+    throw new HttpException('token verification failed!!', 401);
   }
 
   // 리프레시 토큰 삭제
   async removeRefreshToken(token: string): Promise<void> {
-    const tokenId = await this.userMemberRepository.removeRefreshToken(token);
-    await this.userTokenRespository.removeRefreshToken(tokenId);
+    const token_id = await this.userMemberRepository.removeRefreshToken(token);
+
+    await this.userTokenRespository.removeRefreshToken(token_id);
   }
 
   // 엑세스 토큰 생성
@@ -260,13 +276,14 @@ export class AuthService {
     try {
       // 리프레시 토큰 유효기간 검증, 기간 내일경우 엑세스 토큰 생성
       const verify = await this.tokenVerify(token);
+
       return this.createToken({ id: verify.id }, ACCESS_TOKEN_EXP);
     } catch (error) {
       // 리프레시 토큰이 기간 만료된 토큰일 경우 삭제
       if (error instanceof JwtExpiredException) {
         await this.removeRefreshToken(token);
 
-        throw new HttpException('please login again', 500);
+        throw new HttpException('please login again', 463);
       }
     }
   }
@@ -303,45 +320,28 @@ export class AuthService {
       }>(token, options);
       return verify;
     } catch (error) {
-      switch (error.message) {
+      const message = error.message;
+
+      console.log(message);
+      switch (message) {
         // 토큰에 대한 오류를 판단합니다.
         case 'invalid signature':
         case 'INVALID_TOKEN':
         case 'TOKEN_IS_ARRAY':
+        case 'jwt malformed':
+          throw new HttpException('jwt 토큰을 찾을 수 없습니다.', 411);
+        case 'invalid token':
+          throw new HttpException('유효하지 않은 토큰입니다.', 401);
         case 'NO_USER':
           throw new HttpException('유효하지 않은 토큰입니다.', 401);
         case 'jwt expired':
-          throw new JwtExpiredException(410, 'The token has expired.');
+          throw new JwtExpiredException(
+            410,
+            'Your token has expired, send a refresh token to renew it.',
+          );
         default:
           throw new HttpException('서버 오류입니다.', 500);
       }
     }
-  }
-
-  // OAuth 인증 회원가입
-  async oauthSignUp(oauthCredentialsDto: OAuthCredentialsDto): Promise<string> {
-    const { username, token } = oauthCredentialsDto;
-
-    const isMatched = await this.userOAuthRepository.findUserByUsername(
-      username,
-    );
-
-    if (!isMatched) {
-      // oauth entity 등록
-      const userOauth = await this.userOAuthRepository.createUser(username);
-
-      // token entity 등록
-      const userToken = await this.userTokenRespository.registerRefreshToken(
-        token,
-      );
-
-      // 토큰 아이디를 등록
-      await this.userOAuthRepository.registerRefreshToken(
-        userOauth.id,
-        userToken,
-      );
-    }
-
-    return 'user create success!';
   }
 }

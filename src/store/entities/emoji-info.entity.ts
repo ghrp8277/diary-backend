@@ -3,22 +3,35 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { EmojiConfirm } from './emoji-confirm.entity';
+import { EmojiCategory } from './emoji-category.entity';
+import { EmojiTag } from './emoji-tag.entity';
 
 @Entity({ name: 'emoji_info' })
 export class EmojiInfo extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(
+  @OneToOne(
     () => EmojiConfirm,
     (emojiConfirm: EmojiConfirm) => emojiConfirm.emojiInfo,
   )
-  @JoinColumn()
   emojiConfirm: EmojiConfirm;
+
+  // @ManyToOne(
+  //   () => EmojiCategory,
+  //   (emojiCategory: EmojiCategory) => emojiCategory.emojiInfoes,
+  // )
+  // @JoinColumn({ name: 'gategory', referencedColumnName: 'category_value' })
+  // emojiCategory: EmojiCategory;
+
+  // @OneToMany(() => EmojiTag, (emojiTag: EmojiTag) => emojiTag.emojiInfo)
+  // emojiTags: EmojiTag[];
 
   @Column({
     name: 'product_name',
@@ -35,22 +48,6 @@ export class EmojiInfo extends BaseEntity {
     type: 'varchar',
   })
   author_name: string;
-
-  @Column({
-    name: 'category',
-    nullable: false,
-    comment: '카테고리',
-    type: 'varchar',
-  })
-  category: string;
-
-  @Column({
-    name: 'tag',
-    nullable: false,
-    comment: '태그',
-    type: 'varchar',
-  })
-  tag: string;
 
   @Column({
     name: 'comment',

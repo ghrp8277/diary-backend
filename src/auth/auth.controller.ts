@@ -1,18 +1,21 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
   Put,
   Query,
+  Req,
   Res,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import { Response } from 'express';
-import { Public } from './jwt/jwt.guard';
+import { Public, JwtLoginGuard } from './jwt/jwt.guard';
 import { UserMember } from './entities/user-member.entity';
 import { ChangePasswordDto } from './dto/password-change.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
@@ -61,6 +64,42 @@ export class AuthController {
     return await this.authService.signUp(authCredentialsDto);
   }
 
+  // refresh token 검증
+  @Post('/refresh')
+  async refreshTokenAuth(
+    @Req() req,
+    @Res({ passthrough: true }) res: Response,
+    @Body('username') username: string,
+  ) {
+    // const raw = req.headers.cookie;
+
+    // const token = raw.replace('Refresh=', '');
+
+    const raw = req.headers.authorization;
+
+    const token = raw.replace('Bearer ', '');
+
+    const accessToken = await this.authService.findRefreshTokenByHashMatched(
+      token,
+      username,
+    );
+
+    res.cookie('Authorization', accessToken, {
+      // 3시간
+      maxAge: 60 * 60 * 1000 * 3,
+      httpOnly: true,
+      sameSite: 'none',
+    });
+
+    return accessToken;
+  }
+
+  // 로그아웃
+  @Delete('/logout')
+  async logout(@Body('token') token: string) {
+    await this.authService.removeRefreshToken(token);
+  }
+
   // 비밀번호 변경
   @ApiOperation({
     summary: '비밀번호 변경',
@@ -72,21 +111,15 @@ export class AuthController {
     return await this.authService.changePassword(changePasswordDto);
   }
 
-  // 계정 중복확인
-  @Get('/check/id')
-  async idCheck(@Query('username') username: string) {
-    return await this.authService.idDuplicateCheck(username);
-  }
-
   // 이메일 중복확인
-  @Get('/check/email')
-  async emailCheck(@Query('email') e_mail: string) {
+  @Post('/email/check')
+  async emailCheck(@Body('email') e_mail: string) {
     return await this.authService.emailDuplicateCheck(e_mail);
   }
 
   // 이메일 인증
   @Post('/email')
-  async emailAuth(@Query('email') e_mail: string) {
+  async emailAuth(@Body('email') e_mail: string) {
     return await this.authService.emailAuth(e_mail);
   }
 
@@ -105,7 +138,7 @@ export class AuthController {
   })
   @Post('/email/:number')
   async emailAuthNumber(
-    @Query('email') e_mail: string,
+    @Body('email') e_mail: string,
     @Param('number') number: string,
   ) {
     return await this.authService.emailNumberAuth(e_mail, number);
@@ -116,9 +149,15 @@ export class AuthController {
     summary: '아이디 찾기',
     description: '다이어리 앱 웹 아이디 찾기 api',
   })
-  @Get('/find/id')
+  @Get('/user/id')
   async findId(@Query('email') e_mail: string): Promise<string> {
     return await this.authService.findEmailById(e_mail);
+  }
+
+  // 계정 중복확인
+  @Get('/user/:username/check')
+  async idCheck(@Param('username') username: string) {
+    return await this.authService.idDuplicateCheck(username);
   }
 
   // 로그인
@@ -155,19 +194,18 @@ export class AuthController {
   ) {
     const jwt = await this.authService.signIn(authLoginDto);
 
-    res.setHeader('Authorization', 'Bearer ' + jwt.accessToken);
-    res.setHeader('ACCESS_TOKEN', jwt.accessToken);
-    res.setHeader('REFRESH_TOKEN', jwt.refreshToken);
+    res.cookie('Authorization', jwt.accessToken, {
+      // 3시간
+      maxAge: 60 * 60 * 1000 * 3,
+      httpOnly: true,
+      sameSite: 'none',
+    });
+    res.cookie('Refresh', jwt.refreshToken, {
+      // 일주일
+      maxAge: 604800 * 1000,
+      httpOnly: true,
+      sameSite: 'none',
+    });
     return res.json(jwt);
-  }
-
-  // OAuth 카카오 로그인 or 회원가입
-  @ApiOperation({
-    summary: '카카오 로그인',
-    description: '다이어리 앱 웹 카카오 로그인 및 회원가입 api',
-  })
-  @Post('/kakao')
-  async kakaoLogin(@Body() oauthCredentialsDto: OAuthCredentialsDto) {
-    return await this.authService.oauthSignUp(oauthCredentialsDto);
   }
 }

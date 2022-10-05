@@ -15,8 +15,11 @@ export class StoreNoticeService {
     await this.studioNoticeRepository.createNotice(notice);
   }
 
-  async findAllNotice(): Promise<StudioNotice[]> {
-    return await this.studioNoticeRepository.findAllNotice();
+  async findNoticeByPage(page: number): Promise<{
+    notices: StudioNotice[];
+    totalPage: number;
+  }> {
+    return await this.studioNoticeRepository.findNoticeByPage(page);
   }
 
   async findNotice(id: number): Promise<StudioNotice> {
