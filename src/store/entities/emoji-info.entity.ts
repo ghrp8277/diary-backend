@@ -23,16 +23,6 @@ export class EmojiInfo extends BaseEntity {
   )
   emojiConfirm: EmojiConfirm;
 
-  // @ManyToOne(
-  //   () => EmojiCategory,
-  //   (emojiCategory: EmojiCategory) => emojiCategory.emojiInfoes,
-  // )
-  // @JoinColumn({ name: 'gategory', referencedColumnName: 'category_value' })
-  // emojiCategory: EmojiCategory;
-
-  // @OneToMany(() => EmojiTag, (emojiTag: EmojiTag) => emojiTag.emojiInfo)
-  // emojiTags: EmojiTag[];
-
   @Column({
     name: 'product_name',
     nullable: false,
@@ -48,6 +38,22 @@ export class EmojiInfo extends BaseEntity {
     type: 'varchar',
   })
   author_name: string;
+
+  @Column({
+    name: 'category',
+    nullable: false,
+    comment: '1차 카테고리',
+    type: 'varchar',
+  })
+  category: string;
+
+  @Column({
+    name: 'tags',
+    nullable: false,
+    comment: '2차 테그',
+    type: 'varchar',
+  })
+  tag: string;
 
   @Column({
     name: 'comment',

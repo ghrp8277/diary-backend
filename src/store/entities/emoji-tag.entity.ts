@@ -21,15 +21,12 @@ export class EmojiTag extends BaseEntity {
   @JoinColumn({ name: 'emoji_category_id', referencedColumnName: 'id' })
   emojiCategory: EmojiCategory;
 
-  // @ManyToOne(() => EmojiInfo, (emojiInfo: EmojiInfo) => emojiInfo.emojiTags)
-  // @JoinColumn({ name: 'emoji_info_id', referencedColumnName: 'id' })
-  // emojiInfo: EmojiInfo;
-
   @Column({
     name: 'tag_name',
     nullable: false,
     comment: '태그 명',
     type: 'varchar',
+    unique: true,
   })
   tag_name: string;
 
@@ -38,6 +35,7 @@ export class EmojiTag extends BaseEntity {
     nullable: false,
     comment: '태그 값',
     type: 'varchar',
+    unique: true,
   })
   tag_value: string;
 }

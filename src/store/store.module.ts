@@ -10,6 +10,8 @@ import { EmojiConfirmRepository } from './repository/emoji-confirm.repository';
 import { BuyerModule } from 'src/buyer/buyer.module';
 import { StoreNoticeService } from './service/store.notice.service';
 import { StudioNoticeRepository } from './repository/studio-notice.repository';
+import { EmojiCategoryRepository } from './repository/emoji-category.repository';
+import { EmojiTagRepository } from './repository/emoji-tag.repository';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { StudioNoticeRepository } from './repository/studio-notice.repository';
       EmojiInfoRepository,
       EmojiConfirmRepository,
       StudioNoticeRepository,
+      EmojiCategoryRepository,
+      EmojiTagRepository,
     ]),
   ],
   providers: [StoreService, StoreNoticeService, ConfigService],

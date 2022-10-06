@@ -10,6 +10,8 @@ import { UserMember } from 'src/auth/entities/user-member.entity';
 import { EmojiInfo } from '../entities/emoji-info.entity';
 import { BuyerService } from 'src/buyer/services/buyer.service';
 import { Connection } from 'typeorm';
+import { EmojiCategoryRepository } from '../repository/emoji-category.repository';
+import { EmojiTagRepository } from '../repository/emoji-tag.repository';
 
 @Injectable()
 export class StoreService {
@@ -21,6 +23,10 @@ export class StoreService {
     private readonly emojiInfoRepository: EmojiInfoRepository,
     @InjectRepository(EmojiConfirmRepository)
     private readonly emojiConfirmRepository: EmojiConfirmRepository,
+    @InjectRepository(EmojiCategoryRepository)
+    private readonly emojiCategoryRepository: EmojiCategoryRepository,
+    @InjectRepository(EmojiTagRepository)
+    private readonly emojiTagRepository: EmojiTagRepository,
     private readonly authService: AuthService,
     private readonly buyerService: BuyerService,
   ) {
@@ -34,8 +40,8 @@ export class StoreService {
   ): Promise<{
     is_confirm: any;
     product_name: string;
-    // category: string;
-    // tag: string;
+    category: string;
+    tag: string;
   }> {
     const user = await this.authService.findUserByUsername(username);
 
@@ -56,8 +62,8 @@ export class StoreService {
     return {
       is_confirm: emojiCofirm.is_confirm,
       product_name: emojiInfo.product_name,
-      // category: emojiInfo.category,
-      // tag: emojiInfo.tag,
+      category: emojiInfo.category,
+      tag: emojiInfo.tag,
     };
   }
 
@@ -88,6 +94,16 @@ export class StoreService {
       username,
       file,
     );
+  }
+
+  // 카테고리 정보를 들고온다.
+  async findAllCategory() {
+    return await this.emojiCategoryRepository.findAllCategory();
+  }
+
+  // 태그 정보들을 들고온다.
+  async findTagByCategoryValue(category_value: string) {
+    return await this.emojiTagRepository.findTagByCategoryValue(category_value);
   }
 
   // 특정 유저 이모지 승인단계 전체 정보 가져오기

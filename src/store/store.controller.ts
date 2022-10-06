@@ -113,7 +113,20 @@ export class StoreController {
   ) {
     // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
     const json = JSON.parse(form_data);
+
     return await this.storeService.imageFileUpload(username, json, files);
+  }
+
+  @Get('/category')
+  async getAllEmojiCategory() {
+    return await this.storeService.findAllCategory();
+  }
+
+  @Get('/tag/:category_value')
+  async getEmojiTagByCategoryName(
+    @Param('category_value') category_value: string,
+  ) {
+    return await this.storeService.findTagByCategoryValue(category_value);
   }
 
   // 이모티콘 상품들의 제안관리 정보를 가져온다.
