@@ -4,7 +4,7 @@ import {
   HttpStatus,
   UnauthorizedException,
 } from '@nestjs/common';
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, QueryRunner, Repository } from 'typeorm';
 import { UserMember } from '../entities/user-member.entity';
 import * as bcrypt from 'bcrypt';
 import { AuthLoginDto } from '../dto/auth-login.dto';
@@ -134,7 +134,11 @@ export class UserMemberRepository extends Repository<UserMember> {
   }
 
   async findUserByUsername(username: string): Promise<UserMember> {
-    const user = await this.findOne({ username });
+    const user = await this.findOne({
+      where: {
+        username,
+      },
+    });
 
     return user;
   }

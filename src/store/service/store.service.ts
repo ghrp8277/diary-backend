@@ -12,6 +12,8 @@ import { BuyerService } from 'src/buyer/services/buyer.service';
 import { Connection } from 'typeorm';
 import { EmojiCategoryRepository } from '../repository/emoji-category.repository';
 import { EmojiTagRepository } from '../repository/emoji-tag.repository';
+import { StoreGroupService } from './store.group.service';
+import * as ip from 'ip';
 
 @Injectable()
 export class StoreService {
@@ -29,6 +31,7 @@ export class StoreService {
     private readonly emojiTagRepository: EmojiTagRepository,
     private readonly authService: AuthService,
     private readonly buyerService: BuyerService,
+    private readonly storeGroupService: StoreGroupService,
   ) {
     this.connection = connection;
   }
@@ -59,12 +62,69 @@ export class StoreService {
       await this.createImageFile(emojiCofirm, username, file);
     });
 
+    const category = emojiInfo.category;
+    const tag = emojiInfo.tag;
+
+    const matched = this.categoryMatched(category);
+
+    let group = null;
+
+    group = await this.storeGroupService.findEmojiGroupByTitle(category);
+
+    if (!group) {
+      group = await this.storeGroupService.createEmojiGroup(
+        matched.title,
+        matched.bgColor,
+        matched.textColor,
+      );
+    }
+
+    const groupItem = await this.storeGroupService.findEmojiGroupItemByTitle(
+      tag,
+    );
+
+    if (!groupItem) {
+      const arr = [product.id];
+
+      await this.storeGroupService.createEmojiGroupItem(tag, arr, group);
+    } else {
+      const id = groupItem.id;
+      const items = groupItem.items;
+
+      items.push(product.id);
+
+      await this.storeGroupService.updateEmojiGroupItemByItems(id, items);
+    }
+
     return {
       is_confirm: emojiCofirm.is_confirm,
       product_name: emojiInfo.product_name,
       category: emojiInfo.category,
       tag: emojiInfo.tag,
     };
+  }
+
+  categoryMatched(category: string) {
+    switch (category) {
+      case 'character':
+        return {
+          title: '인물',
+          bgColor: '#74d394',
+          textColor: '#fff',
+        };
+      case 'animal':
+        return {
+          title: '동물',
+          bgColor: '#ff8686',
+          textColor: '#fff',
+        };
+      case 'illustration':
+        return {
+          title: '일러스트',
+          bgColor: '#93e0dd',
+          textColor: '#fff',
+        };
+    }
   }
 
   // 이모티콘 승인 단계 정보 저장

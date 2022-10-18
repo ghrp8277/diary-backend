@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BuyerController } from './buyer.controller';
 import { BuyerService } from './services/buyer.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,9 +8,13 @@ import { BuyerNoticeService } from './services/buyer.notice.service';
 import { BuyerNoticeRepository } from './repository/buyer-notice.repository';
 import { BuyerFAQService } from './services/buyer.faq.service';
 import { BuyerFAQRepository } from './repository/buyer-faq.repository';
+import { StoreModule } from 'src/store/store.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    forwardRef(() => StoreModule),
+    ConfigModule,
     TypeOrmModule.forFeature([
       ProductRepository,
       FavoriteRepository,

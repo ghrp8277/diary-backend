@@ -4,10 +4,38 @@ import { Product } from '../entities/product.entity';
 
 @EntityRepository(Product)
 export class ProductRepository extends Repository<Product> {
-  async findAllProductByConfirm(
+  async findCategoryByTags(category: string) {
+    const products = await this.createQueryBuilder('product')
+      .leftJoinAndSelect('product.emojiConfirm', 'emojiConfirm')
+      .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
+      .leftJoinAndSelect('emojiConfirm.userMember', 'userMember')
+      .leftJoinAndSelect('emojiConfirm.imageFiles', 'imageFiles')
+      .where('emojiConfirm.is_confirm = :is_confirm', { is_confirm: '3' })
+      .andWhere('emojiInfo.category = :category', { category })
+      .select([
+        'product.id',
+        'emojiConfirm.createdAt',
+        'emojiInfo.tag',
+        'imageFiles.image_url',
+      ])
+      .distinctOn(['emojiInfo.tag'])
+      .orderBy('product.id', 'DESC')
+      .addOrderBy('emojiConfirm.createdAt', 'DESC')
+      .limit(9)
+      .getMany();
+
+    return products;
+  }
+
+  async findProductsByNew(
     username: string,
+    page: number,
+    size: number,
     queryRunner?: QueryRunner,
   ): Promise<Product[]> {
+    const perPage = size;
+    const skip = perPage * page - perPage;
+
     const [products, favorites] = await Promise.all([
       this.createQueryBuilder('product', queryRunner)
         .leftJoinAndSelect('product.emojiConfirm', 'emojiConfirm')
@@ -29,6 +57,8 @@ export class ProductRepository extends Repository<Product> {
           'emojiInfo.comment',
           'imageFiles.image_url',
         ])
+        .limit(perPage)
+        .offset(skip)
         .orderBy('product.id', 'DESC')
         .addOrderBy('emojiConfirm.createdAt', 'DESC')
         .getMany(),
@@ -70,6 +100,7 @@ export class ProductRepository extends Repository<Product> {
     const categories = await this.createQueryBuilder('product')
       .leftJoin('product.emojiConfirm', 'emojiConfirm')
       .innerJoin('emojiConfirm.emojiInfo', 'emojiInfo')
+      .where('emojiConfirm.is_confirm = :is_confirm', { is_confirm: 4 })
       .select('emojiInfo.category', 'category')
       .groupBy('emojiInfo.category')
       .having('COUNT(emojiInfo.category)')
@@ -79,7 +110,10 @@ export class ProductRepository extends Repository<Product> {
     return categories;
   }
 
-  async findProductByCount(): Promise<Product[]> {
+  async findProductsByBest(page: number, size: number): Promise<Product[]> {
+    const perPage = size;
+    const skip = perPage * page - perPage;
+
     const products = await this.createQueryBuilder('product')
       .innerJoin('product.emojiConfirm', 'emojiConfirm')
       .leftJoin('emojiConfirm.emojiInfo', 'emojiInfo')
@@ -93,6 +127,8 @@ export class ProductRepository extends Repository<Product> {
         'emojiInfo.author_name',
         'imageFiles.image_url',
       ])
+      .limit(perPage)
+      .offset(skip)
       .orderBy('product.count', 'DESC')
       .addOrderBy('emojiConfirm.createdAt', 'DESC')
       .getMany();
@@ -151,5 +187,61 @@ export class ProductRepository extends Repository<Product> {
       product: products,
       count,
     };
+  }
+
+  async findProductsByDetail(id: number, username: string) {
+    const [product, favorite] = await Promise.all([
+      this.createQueryBuilder('product')
+        .innerJoin('product.emojiConfirm', 'emojiConfirm')
+        .leftJoin('emojiConfirm.emojiInfo', 'emojiInfo')
+        .leftJoin('emojiConfirm.imageFiles', 'imageFiles')
+        .where('emojiConfirm.is_confirm = :is_confirm', { is_confirm: 4 })
+        .andWhere('product.id = :id', { id })
+        .select([
+          'product.id',
+          'product.count',
+          'product.price',
+          'emojiConfirm.createdAt',
+          'emojiInfo.product_name',
+          'emojiInfo.author_name',
+          'imageFiles.image_url',
+        ])
+        .orderBy('product.count', 'DESC')
+        .addOrderBy('emojiConfirm.createdAt', 'DESC')
+        .getOne(),
+      this.createQueryBuilder('product')
+        .leftJoinAndSelect('product.favorite', 'favorite')
+        .where('favorite.username = :username', { username })
+        .andWhere('product.id = :id', { id })
+        .getOne(),
+    ]);
+
+    if (favorite) {
+      product['is_like'] = true;
+    } else {
+      product['is_like'] = false;
+    }
+
+    return product;
+  }
+
+  async findProductByStyle(id: number): Promise<Product> {
+    const product = await this.createQueryBuilder('product')
+      .leftJoinAndSelect('product.emojiConfirm', 'emojiConfirm')
+      .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
+      .leftJoinAndSelect('emojiConfirm.imageFiles', 'imageFiles')
+      .where('product.id = :id', { id })
+      .andWhere('emojiConfirm.is_confirm = :is_confirm', { is_confirm: 4 })
+      .select([
+        'product.id',
+        'product.count',
+        'emojiConfirm.createdAt',
+        'emojiInfo.product_name',
+        'emojiInfo.author_name',
+        'imageFiles.image_url',
+      ])
+      .getOne();
+
+    return product;
   }
 }

@@ -42,7 +42,7 @@ import { BuyerModule } from './buyer/buyer.module';
     StoreModule,
     BuyerModule,
   ],
-  controllers: [AppController, BoardController],
+  controllers: [AppController],
   providers: [
     AppService,
     {

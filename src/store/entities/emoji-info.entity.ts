@@ -11,6 +11,8 @@ import {
 import { EmojiConfirm } from './emoji-confirm.entity';
 import { EmojiCategory } from './emoji-category.entity';
 import { EmojiTag } from './emoji-tag.entity';
+import { json } from 'stream/consumers';
+import { EmojiGroup } from './emoji-group.entity';
 
 @Entity({ name: 'emoji_info' })
 export class EmojiInfo extends BaseEntity {
@@ -48,10 +50,11 @@ export class EmojiInfo extends BaseEntity {
   category: string;
 
   @Column({
-    name: 'tags',
+    name: 'tag',
     nullable: false,
-    comment: '2차 테그',
+    comment: '테그',
     type: 'varchar',
+    readonly: false,
   })
   tag: string;
 

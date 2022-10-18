@@ -39,7 +39,7 @@ export class UserMember extends BaseEntity {
   userInfo: UserInfo;
 
   @OneToMany(() => Favorite, (favorite: Favorite) => favorite.userMember)
-  favorite: Favorite;
+  favorite: Favorite[];
 
   // 게시글
   @OneToMany(() => Board, (board) => board.user_member)
