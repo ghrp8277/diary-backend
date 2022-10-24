@@ -190,7 +190,7 @@ export class ProductRepository extends Repository<Product> {
   }
 
   async findProductsByDetail(id: number, username: string) {
-    const [product, favorite] = await Promise.all([
+    const [product, favorite, check] = await Promise.all([
       this.createQueryBuilder('product')
         .innerJoin('product.emojiConfirm', 'emojiConfirm')
         .leftJoin('emojiConfirm.emojiInfo', 'emojiInfo')
@@ -214,12 +214,28 @@ export class ProductRepository extends Repository<Product> {
         .where('favorite.username = :username', { username })
         .andWhere('product.id = :id', { id })
         .getOne(),
+      this.createQueryBuilder('product')
+        .innerJoin('product.emojiConfirm', 'emojiConfirm')
+        .leftJoin('emojiConfirm.userMember', 'userMember')
+        .leftJoin('userMember.paymentHistories', 'paymentHistories')
+        .leftJoin('paymentHistories.paymentInfo', 'paymentInfo')
+        .where('paymentInfo.partner_order_id = :partner_order_id', {
+          partner_order_id: String(id),
+        })
+        .select('product.id', 'id')
+        .getRawOne(),
     ]);
 
     if (favorite) {
       product['is_like'] = true;
     } else {
       product['is_like'] = false;
+    }
+
+    if (check) {
+      product['is_buyer'] = true;
+    } else {
+      product['is_buyer'] = false;
     }
 
     return product;
@@ -241,6 +257,35 @@ export class ProductRepository extends Repository<Product> {
         'imageFiles.image_url',
       ])
       .getOne();
+
+    return product;
+  }
+
+  // 파일 다운로드
+  async fileDownloadByProductId(id: number): Promise<{
+    id: number;
+    file_path: string;
+  }> {
+    const product = await this.createQueryBuilder('product')
+      .leftJoinAndSelect('product.emojiConfirm', 'emojiConfirm')
+      .leftJoinAndSelect('emojiConfirm.imageFiles', 'imageFiles')
+      .where('product.id = :id', { id })
+      .select('imageFiles.file_path', 'file_path')
+      .getRawOne();
+
+    return product;
+  }
+
+  async findProductById(id: number): Promise<any> {
+    const product = await this.createQueryBuilder('product')
+      .leftJoinAndSelect('product.emojiConfirm', 'emojiConfirm')
+      .leftJoinAndSelect('emojiConfirm.emojiInfo', 'emojiInfo')
+      .leftJoinAndSelect('emojiConfirm.imageFiles', 'imageFiles')
+      .where('product.id = :id', { id })
+      .select('emojiInfo.product_name', 'product_name')
+      .addSelect('emojiInfo.author_name', 'author_name')
+      .addSelect('imageFiles', 'image_files')
+      .getRawOne();
 
     return product;
   }

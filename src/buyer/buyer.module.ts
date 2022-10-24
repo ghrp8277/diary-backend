@@ -10,11 +10,13 @@ import { BuyerFAQService } from './services/buyer.faq.service';
 import { BuyerFAQRepository } from './repository/buyer-faq.repository';
 import { StoreModule } from 'src/store/store.module';
 import { ConfigModule } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     forwardRef(() => StoreModule),
     ConfigModule,
+    HttpModule,
     TypeOrmModule.forFeature([
       ProductRepository,
       FavoriteRepository,

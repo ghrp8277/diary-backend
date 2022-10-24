@@ -13,9 +13,15 @@ export class StoreGroupService {
     @InjectRepository(EmojiGroupRepository)
     private readonly emojiGroupRepository: EmojiGroupRepository,
   ) {}
-  async createEmojiGroup(title: string, bg_color: string, text_color: string) {
-    await this.emojiGroupRepository.createEmojiGroup(
+  async createEmojiGroup(
+    title: string,
+    match_title: string,
+    bg_color: string,
+    text_color: string,
+  ) {
+    return await this.emojiGroupRepository.createEmojiGroup(
       title,
+      match_title,
       bg_color,
       text_color,
     );
@@ -47,5 +53,9 @@ export class StoreGroupService {
 
   async findAllEmojiGroup() {
     return await this.emojiGroupRepository.findAllEmojiGroup();
+  }
+
+  async findEmojiGroup(id: number) {
+    return await this.emojiGroupRepository.findEmojiGroup(id);
   }
 }

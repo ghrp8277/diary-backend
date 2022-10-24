@@ -3,17 +3,20 @@ import {
   Controller,
   Get,
   Param,
-  Patch,
+  Header,
   Post,
   Put,
   Query,
   Res,
+  StreamableFile,
+  Redirect,
 } from '@nestjs/common';
 import { Public } from 'src/auth/jwt/jwt.guard';
 import { BuyerNoticeService } from './services/buyer.notice.service';
 import { BuyerService } from './services/buyer.service';
 import { Response as ExResponse } from 'express';
 import { BuyerFAQService } from './services/buyer.faq.service';
+import type { Response } from 'express';
 
 @Public()
 @Controller('buyer')
@@ -23,6 +26,21 @@ export class BuyerController {
     private readonly buyerNoticeService: BuyerNoticeService,
     private readonly buyerFAQService: BuyerFAQService,
   ) {}
+
+  @Get('/download/file/:id')
+  async getEmojiFile(
+    @Res({ passthrough: true }) res: Response,
+    @Param('id') id: number,
+  ) {
+    const file = await this.buyerService.getFileDownload(id);
+
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': 'attachment; filename="emoji.zip"',
+    });
+
+    return new StreamableFile(file);
+  }
 
   // 검색창에 상품명 검색
   @Get('/search')
@@ -45,8 +63,13 @@ export class BuyerController {
   }
 
   @Get('/style')
-  async getProductsByMain() {
+  async getProductsByStyle() {
     return await this.buyerService.findProductsByStyle();
+  }
+
+  @Get('/style/:id')
+  async getProductByStyle(@Param('id') id: number) {
+    return await this.buyerService.findProductByStyle(id);
   }
 
   // 신규 정보 카테고리
@@ -110,7 +133,17 @@ export class BuyerController {
 
     const path = `buyer/${notice.file_name}`;
 
-    return res.render(path);
+    return res.render(path, function (err, html) {
+      res.json({
+        html,
+        notice: {
+          id: notice.id,
+          is_important: notice.is_important,
+          title: notice.title,
+          createdAt: notice.createdAt,
+        },
+      });
+    });
   }
 
   // 공지사항 내용을 생성한다.

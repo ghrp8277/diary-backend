@@ -15,6 +15,7 @@ import { UserInfo } from './user-info.entity';
 import { Board } from 'src/board/entities/board.entity';
 import { EmojiConfirm } from 'src/store/entities/emoji-confirm.entity';
 import { Favorite } from 'src/buyer/entities/favorite.entity';
+import { PaymentHistory } from 'src/payment/entities/payment-history.entity';
 
 @Entity({ name: 'user_member' })
 @Unique(['username'])
@@ -45,9 +46,16 @@ export class UserMember extends BaseEntity {
   @OneToMany(() => Board, (board) => board.user_member)
   boards: Board[];
 
-  // 이미지 파일
+  // 이모티콘 정보들
   @OneToMany(() => EmojiConfirm, (emojiConfirm) => emojiConfirm.userMember)
   emojiConfirms: EmojiConfirm[];
+
+  // 결제이력
+  @OneToMany(
+    () => PaymentHistory,
+    (paymentHistory) => paymentHistory.userMember,
+  )
+  paymentHistories: PaymentHistory[];
 
   @ApiProperty({
     example: 'test',

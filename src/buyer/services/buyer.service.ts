@@ -8,6 +8,9 @@ import { Favorite } from '../entities/favorite.entity';
 import { Product } from '../entities/product.entity';
 import { FavoriteRepository } from '../repository/favorite.repository';
 import { ProductRepository } from '../repository/product.repository';
+import * as fs from 'fs';
+import { join } from 'path';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class BuyerService {
@@ -18,6 +21,7 @@ export class BuyerService {
     @InjectRepository(FavoriteRepository)
     private readonly favoriteRepository: FavoriteRepository,
     private readonly storeGroupService: StoreGroupService,
+    private readonly httpService: HttpService,
   ) {}
 
   async findProductsByName(
@@ -157,6 +161,12 @@ export class BuyerService {
   }
 
   // 상품 스타일 태그 대로 가져오기
+  async findProductByStyle(id: number) {
+    const product = await this.storeGroupService.findEmojiGroup(id);
+
+    return product;
+  }
+
   async findProductsByStyle() {
     const arr = [];
 
@@ -217,6 +227,7 @@ export class BuyerService {
       arr.push({
         id,
         title,
+        match_title: item.match_title,
         bgColor,
         textColor,
         groups: values,
@@ -233,5 +244,23 @@ export class BuyerService {
     }
 
     return arr;
+  }
+
+  async getFileDownload(id: number) {
+    const product = await this.productRepository.fileDownloadByProductId(id);
+
+    const file_path = product.file_path as string;
+
+    const index = file_path.lastIndexOf('/');
+
+    const path = file_path.slice(0, index);
+
+    const file = fs.createReadStream(join(path, 'emoticon.zip'));
+
+    return file;
+  }
+
+  async findProductById(id: number) {
+    return await this.productRepository.findProductById(id);
   }
 }

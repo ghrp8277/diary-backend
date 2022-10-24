@@ -23,6 +23,7 @@ import * as moment from 'moment';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { StoreNoticeService } from './service/store.notice.service';
 import { Response as ExResponse } from 'express';
+import * as JSZip from 'jszip';
 
 @Controller('store')
 export class StoreController {
@@ -111,6 +112,31 @@ export class StoreController {
     @Body('form-data') form_data: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    const index = files[0].path.lastIndexOf('/');
+
+    const path = `${files[0].path.slice(0, index)}/emoticon.zip`;
+
+    const zip = new JSZip();
+
+    const images = zip.folder('images');
+
+    for (const file of files) {
+      const original_name = file.originalname;
+
+      const path = file.path;
+
+      const image = fs.createReadStream(path);
+
+      images.file(original_name, image);
+    }
+
+    zip
+      .generateNodeStream({ type: 'nodebuffer', streamFiles: true })
+      .pipe(fs.createWriteStream(path))
+      .on('finish', function () {
+        console.log(`${path} written.`);
+      });
+
     // 업로드한 파일은 지정한 폴더에 저장 -> 그후 파일들을 DB에 저장 (DB는 파일이 보관된 경로만 저장)
     const json = JSON.parse(form_data);
 

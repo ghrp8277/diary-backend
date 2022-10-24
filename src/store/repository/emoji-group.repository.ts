@@ -5,16 +5,18 @@ import { EmojiGroup } from '../entities/emoji-group.entity';
 export class EmojiGroupRepository extends Repository<EmojiGroup> {
   async createEmojiGroup(
     title: string,
+    match_title: string,
     bg_color: string,
     text_color: string,
-  ): Promise<void> {
+  ): Promise<EmojiGroup> {
     const emoji_group = this.create({
       bg_color,
       text_color,
       title,
+      match_title,
     });
 
-    await this.save(emoji_group);
+    return await this.save(emoji_group);
   }
 
   async findEmojiGroupByTitle(title: string): Promise<EmojiGroup> {
@@ -31,6 +33,7 @@ export class EmojiGroupRepository extends Repository<EmojiGroup> {
         'emojiGroup.bg_color',
         'emojiGroup.text_color',
         'emojiGroup.title',
+        'emojiGroup.match_title',
         'emojiGroupItems.id',
         'emojiGroupItems.title',
         'emojiGroupItems.items',
@@ -40,5 +43,10 @@ export class EmojiGroupRepository extends Repository<EmojiGroup> {
       .getMany();
 
     return group;
+  }
+
+  async findEmojiGroup(id: number) {
+    //   const group = await this.createQueryBuilder('emojiGroup')
+    //   .
   }
 }

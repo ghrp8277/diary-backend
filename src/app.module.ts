@@ -18,6 +18,7 @@ import { TasksService } from './tasks/tasks.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { BuyerModule } from './buyer/buyer.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { BuyerModule } from './buyer/buyer.module';
     BoardModule,
     StoreModule,
     BuyerModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [

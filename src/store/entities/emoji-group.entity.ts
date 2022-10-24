@@ -47,4 +47,13 @@ export class EmojiGroup extends BaseEntity {
     unique: true,
   })
   title: string;
+
+  @Column({
+    name: 'match_title',
+    nullable: false,
+    comment: '그룹 매칭 타이틀',
+    type: 'varchar',
+    unique: true,
+  })
+  match_title: string;
 }

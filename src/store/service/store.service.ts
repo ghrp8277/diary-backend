@@ -13,7 +13,6 @@ import { Connection } from 'typeorm';
 import { EmojiCategoryRepository } from '../repository/emoji-category.repository';
 import { EmojiTagRepository } from '../repository/emoji-tag.repository';
 import { StoreGroupService } from './store.group.service';
-import * as ip from 'ip';
 
 @Injectable()
 export class StoreService {
@@ -73,6 +72,7 @@ export class StoreService {
 
     if (!group) {
       group = await this.storeGroupService.createEmojiGroup(
+        category,
         matched.title,
         matched.bgColor,
         matched.textColor,

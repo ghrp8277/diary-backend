@@ -1,3 +1,4 @@
+import { PaymentHistory } from 'src/payment/entities/payment-history.entity';
 import { EmojiConfirm } from 'src/store/entities/emoji-confirm.entity';
 import {
   BaseEntity,
@@ -38,6 +39,7 @@ export class Product extends BaseEntity {
     nullable: false,
     default: 1500,
     comment: '가격',
+    type: 'int',
   })
   price: number;
 
