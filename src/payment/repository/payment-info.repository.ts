@@ -55,4 +55,10 @@ export class PaymentInfoRepository extends Repository<PaymentInfo> {
 
     return await this.save(paymentInfo);
   }
+
+  async deletePaymentInfoById(id: number) {
+    await this.delete({
+      id,
+    });
+  }
 }

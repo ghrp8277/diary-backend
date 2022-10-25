@@ -37,6 +37,37 @@ export class PaymentHistoryRepository extends Repository<PaymentHistory> {
       .addSelect('amount.total', 'price')
       .addSelect('payment_info.partner_order_id', 'product_id')
       .addSelect('payment_history.id', 'id')
+      .orderBy('payment_history.id', 'DESC')
       .getRawMany();
+  }
+
+  async findPaymentHistoryById(id: number): Promise<{
+    payment_info_id: number;
+    amount_id: number;
+    card_info_id: number;
+    cid: string;
+    tid: string;
+    total: number;
+    tax_free: number;
+  }> {
+    return await this.createQueryBuilder('payment_history')
+      .leftJoinAndSelect('payment_history.paymentInfo', 'payment_info')
+      .leftJoinAndSelect('payment_info.cardInfo', 'card_info')
+      .leftJoinAndSelect('payment_info.amount', 'amount')
+      .where('payment_history.id = :id', { id })
+      .select('payment_info.id', 'payment_info_id')
+      .addSelect('amount.id', 'amount_id')
+      .addSelect('card_info.id', 'card_info_id')
+      .addSelect('payment_info.cid', 'cid')
+      .addSelect('payment_info.tid', 'tid')
+      .addSelect('amount.total', 'total')
+      .addSelect('amount.tax_free', 'tax_free')
+      .getRawOne();
+  }
+
+  async deletePaymentHistoryById(id: number) {
+    return await this.delete({
+      id,
+    });
   }
 }

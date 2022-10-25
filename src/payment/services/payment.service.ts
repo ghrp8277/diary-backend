@@ -11,6 +11,16 @@ import { AuthService } from 'src/auth/auth.service';
 import { ApproveInterface } from '../interface/approve';
 import { PaymentInterface } from '../interface/payment';
 import { BuyerService } from 'src/buyer/services/buyer.service';
+import { OrderInterface } from '../interface/order';
+
+const url = 'https://kapi.kakao.com';
+
+const APP_ADMIN_KEY = '0249122023710646375b960590585b33';
+
+const headers = {
+  Authorization: `KakaoAK ${APP_ADMIN_KEY}`,
+  'Content-type': 'application/x-www-form-urlencoded;charset=utf-8',
+};
 
 @Injectable()
 export class PaymentService {
@@ -34,15 +44,6 @@ export class PaymentService {
     total_amount: number;
   }): Promise<PaymentInterface> {
     const { partner_order_id, quantity, total_amount } = formData;
-
-    const url = 'https://kapi.kakao.com';
-
-    const APP_ADMIN_KEY = '0249122023710646375b960590585b33';
-
-    const headers = {
-      Authorization: `KakaoAK ${APP_ADMIN_KEY}`,
-      'Content-type': 'application/x-www-form-urlencoded;charset=utf-8',
-    };
 
     const params = {
       // 가맹점 코드 인증키, 24자, 숫자와 영문 소문자 조합
@@ -72,11 +73,113 @@ export class PaymentService {
       params,
     };
 
-    const response = await firstValueFrom(
-      this.httpService.post(`${url}/v1/payment/ready`, null, requestConfig),
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${url}/v1/payment/ready`, null, requestConfig),
+      );
+
+      return response.data;
+    } catch ({ response }) {
+      const data = response.data;
+
+      throw new HttpException(data, response.status);
+    }
+  }
+
+  async order(id: number) {
+    const history = await this.paymentHistoryRepository.findPaymentHistoryById(
+      id,
     );
 
-    return response.data;
+    const { cid, tid } = history;
+
+    const order = await this.kakaoOrder(cid, tid);
+
+    return order;
+  }
+
+  async kakaoOrder(cid: string, tid: string) {
+    const params = {
+      cid,
+      tid,
+    };
+
+    const requestConfig: AxiosRequestConfig = {
+      headers,
+      params,
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${url}/v1/payment/order`, null, requestConfig),
+      );
+
+      return response.data as OrderInterface;
+    } catch ({ response }) {
+      const data = response.data;
+
+      throw new HttpException(data, response.status);
+    }
+  }
+
+  async cancel(id: number) {
+    const history = await this.paymentHistoryRepository.findPaymentHistoryById(
+      id,
+    );
+
+    const {
+      cid,
+      tid,
+      total,
+      tax_free,
+      payment_info_id,
+      amount_id,
+      card_info_id,
+    } = history;
+
+    const params = {
+      cid,
+      tid,
+      cancel_amount: total,
+      cancel_tax_free_amount: tax_free,
+    };
+
+    await this.kakaoCancel(params);
+
+    await this.paymentHistoryRepository.deletePaymentHistoryById(id);
+
+    await this.paymentInfoRepository.deletePaymentInfoById(payment_info_id);
+
+    await this.amountRepository.deleteAmountById(amount_id);
+
+    if (card_info_id) {
+      await this.cardInfoRepository.deleteCardInfoById(card_info_id);
+    }
+    return 'success kakao pay cancel';
+  }
+
+  async kakaoCancel(params: {
+    cid: string;
+    tid: string;
+    cancel_amount: number;
+    cancel_tax_free_amount: number;
+  }) {
+    const requestConfig: AxiosRequestConfig = {
+      headers,
+      params,
+    };
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${url}/v1/payment/cancel`, null, requestConfig),
+      );
+
+      return response.data;
+    } catch ({ response }) {
+      const data = response.data;
+
+      throw new HttpException(data, response.status);
+    }
   }
 
   async kakaoApprove(formData: {
@@ -86,14 +189,6 @@ export class PaymentService {
     total_amount: number;
   }): Promise<ApproveInterface> {
     const { tid, partner_order_id, pg_token, total_amount } = formData;
-    const url = 'https://kapi.kakao.com';
-
-    const APP_ADMIN_KEY = '0249122023710646375b960590585b33';
-
-    const headers = {
-      Authorization: `KakaoAK ${APP_ADMIN_KEY}`,
-      'Content-type': 'application/x-www-form-urlencoded;charset=utf-8',
-    };
 
     const params = {
       // 가맹점 코드 인증키, 24자, 숫자와 영문 소문자 조합
@@ -124,9 +219,10 @@ export class PaymentService {
       );
 
       return response.data as ApproveInterface;
-    } catch (error) {
-      console.log(error);
-      new HttpException(error.messsage, error.status);
+    } catch ({ response }) {
+      const data = response.data;
+
+      throw new HttpException(data, response.status);
     }
   }
 
@@ -139,51 +235,44 @@ export class PaymentService {
       total_amount: number;
     },
   ) {
-    try {
-      const user_member = await this.authService.findUserByUsername(username);
+    const user_member = await this.authService.findUserByUsername(username);
 
-      const data = await this.kakaoApprove(formData);
+    const data = await this.kakaoApprove(formData);
 
-      const payment = {
-        aid: data.aid,
-        tid: data.tid,
-        cid: data.cid,
-        partner_order_id: data.partner_order_id,
-        partner_user_id: data.partner_user_id,
-        payment_method_type: data.payment_method_type,
-        item_name: data.item_name,
-        quantity: data.quantity,
-        created_at: data.created_at,
-        approved_at: data.approved_at,
-        payload: data.payload,
-      };
+    const payment = {
+      aid: data.aid,
+      tid: data.tid,
+      cid: data.cid,
+      partner_order_id: data.partner_order_id,
+      partner_user_id: data.partner_user_id,
+      payment_method_type: data.payment_method_type,
+      item_name: data.item_name,
+      quantity: data.quantity,
+      created_at: data.created_at,
+      approved_at: data.approved_at,
+      payload: data.payload,
+    };
 
-      const amount = await this.amountRepository.createAmount(data.amount);
+    const amount = await this.amountRepository.createAmount(data.amount);
 
-      let card_info;
+    let card_info;
 
-      if (data.card_info) {
-        card_info = await this.cardInfoRepository.createCardInfo(
-          data.card_info,
-        );
-      }
-
-      const payment_info = await this.paymentInfoRepository.createPaymentInfo(
-        payment,
-        amount,
-        card_info,
-      );
-
-      await this.paymentHistoryRepository.createPaymentHistory(
-        user_member,
-        payment_info,
-      );
-
-      return true;
-    } catch (error) {
-      console.log(error);
-      new HttpException(error.messsage, error.status);
+    if (data.card_info) {
+      card_info = await this.cardInfoRepository.createCardInfo(data.card_info);
     }
+
+    const payment_info = await this.paymentInfoRepository.createPaymentInfo(
+      payment,
+      amount,
+      card_info,
+    );
+
+    await this.paymentHistoryRepository.createPaymentHistory(
+      user_member,
+      payment_info,
+    );
+
+    return true;
   }
 
   async findAllPaymentHistoryByUsername(username: string) {

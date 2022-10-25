@@ -15,17 +15,24 @@ export class PaymentInfo extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Amount, (amount: Amount) => amount.paymentInfo)
+  @OneToOne(() => Amount, (amount: Amount) => amount.paymentInfo, {
+    cascade: true,
+  })
   @JoinColumn({ name: 'amount_id', referencedColumnName: 'id' })
   amount: Amount;
 
-  @OneToOne(() => CardInfo, (cardInfo: CardInfo) => cardInfo.paymentInfo)
+  @OneToOne(() => CardInfo, (cardInfo: CardInfo) => cardInfo.paymentInfo, {
+    cascade: true,
+  })
   @JoinColumn({ name: 'card_info_id', referencedColumnName: 'id' })
   cardInfo: CardInfo;
 
   @OneToOne(
     () => PaymentHistory,
     (paymentHistory: PaymentHistory) => paymentHistory.paymentInfo,
+    {
+      onDelete: 'CASCADE',
+    },
   )
   paymentHistory: PaymentHistory;
 

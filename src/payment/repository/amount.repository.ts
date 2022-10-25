@@ -18,4 +18,10 @@ export class AmountRepository extends Repository<Amount> {
 
     return await this.save(amount_info);
   }
+
+  async deleteAmountById(id: number) {
+    await this.delete({
+      id,
+    });
+  }
 }

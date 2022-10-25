@@ -39,21 +39,30 @@ export class UserMember extends BaseEntity {
   @JoinColumn({ name: 'user_info_id', referencedColumnName: 'id' })
   userInfo: UserInfo;
 
-  @OneToMany(() => Favorite, (favorite: Favorite) => favorite.userMember)
+  @OneToMany(() => Favorite, (favorite: Favorite) => favorite.userMember, {
+    cascade: true,
+  })
   favorite: Favorite[];
 
   // 게시글
-  @OneToMany(() => Board, (board) => board.user_member)
+  @OneToMany(() => Board, (board) => board.user_member, {
+    cascade: true,
+  })
   boards: Board[];
 
   // 이모티콘 정보들
-  @OneToMany(() => EmojiConfirm, (emojiConfirm) => emojiConfirm.userMember)
+  @OneToMany(() => EmojiConfirm, (emojiConfirm) => emojiConfirm.userMember, {
+    cascade: true,
+  })
   emojiConfirms: EmojiConfirm[];
 
   // 결제이력
   @OneToMany(
     () => PaymentHistory,
     (paymentHistory) => paymentHistory.userMember,
+    {
+      cascade: true,
+    },
   )
   paymentHistories: PaymentHistory[];
 

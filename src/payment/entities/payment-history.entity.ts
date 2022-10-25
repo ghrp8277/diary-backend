@@ -19,11 +19,16 @@ export class PaymentHistory extends BaseEntity {
   @OneToOne(
     () => PaymentInfo,
     (paymentInfo: PaymentInfo) => paymentInfo.paymentHistory,
+    {
+      cascade: true,
+    },
   )
   @JoinColumn({ name: 'payment_info_id', referencedColumnName: 'id' })
   paymentInfo: PaymentInfo;
 
-  @ManyToOne(() => UserMember, (user: UserMember) => user)
+  @ManyToOne(() => UserMember, (user: UserMember) => user, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_member_id', referencedColumnName: 'id' })
   userMember: UserMember;
 }

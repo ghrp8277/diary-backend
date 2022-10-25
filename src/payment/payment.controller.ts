@@ -23,6 +23,16 @@ export class PaymentController {
     return await this.buyerService.paymentApproveToSave(username, json);
   }
 
+  @Post('/order/:id')
+  async order(@Param('id') id: number) {
+    return await this.buyerService.order(id);
+  }
+
+  @Post('cancel/:id')
+  async cancel(@Param('id') id: number) {
+    return await this.buyerService.cancel(id);
+  }
+
   @Get('/history/:username')
   async getAllPaymentHistory(@Param('username') username: string) {
     return await this.buyerService.findAllPaymentHistoryByUsername(username);

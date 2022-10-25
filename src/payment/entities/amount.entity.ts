@@ -12,7 +12,13 @@ export class Amount extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => PaymentInfo, (paymentInfo: PaymentInfo) => paymentInfo.amount)
+  @OneToOne(
+    () => PaymentInfo,
+    (paymentInfo: PaymentInfo) => paymentInfo.amount,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   paymentInfo: PaymentInfo;
 
   @Column({

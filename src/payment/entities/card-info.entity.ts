@@ -15,6 +15,9 @@ export class CardInfo extends BaseEntity {
   @OneToOne(
     () => PaymentInfo,
     (paymentInfo: PaymentInfo) => paymentInfo.cardInfo,
+    {
+      onDelete: 'CASCADE',
+    },
   )
   paymentInfo: PaymentInfo;
 

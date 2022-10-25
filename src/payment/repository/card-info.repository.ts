@@ -49,4 +49,10 @@ export class CardInfoRepository extends Repository<CardInfo> {
       new Error(error.messsage);
     }
   }
+
+  async deleteCardInfoById(id: number) {
+    await this.delete({
+      id,
+    });
+  }
 }
