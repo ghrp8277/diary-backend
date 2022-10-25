@@ -10,6 +10,7 @@ export default (configService: ConfigService) => {
     isGlobal: true,
     ttl: configService.get('EMAIL_CACHE_TTL'),
     max: configService.get('CACHE_MAX'),
+    auth_pass: configService.get('REDIS_PASS'),
   };
 
   return cacheConfig;
