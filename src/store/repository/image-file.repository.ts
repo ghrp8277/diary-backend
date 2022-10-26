@@ -14,9 +14,12 @@ export class ImageFileRepository extends Repository<ImageFile> {
     try {
       const { originalname, mimetype, path, size } = file;
 
-      const before = path.substring(0, path.indexOf(username))
-      const address: string = ip.address()
-      const image_url = path.replace(before, `http://${address}:3000/`)
+      const before = path.substring(0, path.indexOf(username));
+      let address: string = ip.address();
+
+      if (address == '172.17.0.3') address = 'leejehyeon.synology.me';
+
+      const image_url = path.replace(before, `http://${address}:3000/`);
 
       const imageFileModule = this.create({
         emojiConfirm,
