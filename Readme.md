@@ -6,12 +6,11 @@
   > 공유된 다양한 이모티콘을 가지고 나의 기분을 다양하게 표현할 수 있습니다.
 ------------
 * ## 개발환경
-  1. Vue JS
+  1. Nest JS
   2. Typescript
-  3. Pinia
-  4. Axios
-  5. FontAwesome
-  6. composition-api
+  3. Typeorm
+  4. Swagger
+  5. Axio
 ------------
 * ## ERD 다이어그램
   ![diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200174746-7a07f62b-af4c-48bd-9d2c-1b373c0e412c.png)
