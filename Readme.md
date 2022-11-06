@@ -12,6 +12,8 @@
   4. Swagger
   5. Axio
 ------------
+* ## 시스템 구조도
+------------
 * ## ERD 다이어그램
   ![diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200174746-7a07f62b-af4c-48bd-9d2c-1b373c0e412c.png)
 
