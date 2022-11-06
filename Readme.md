@@ -31,4 +31,4 @@
   > 해당 프로젝트 기여도 100%
 ------------
 * ## 링크
-다이어리 스튜디오 [Diary Studio](http://leejehyeon.synology.me:8888)
+다이어리 스튜디오 [Diary Studio](http://leejehyeon.synology.me:3000/test)
