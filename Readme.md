@@ -14,10 +14,8 @@
   6. composition-api
 ------------
 * ## ERD 다이어그램
- (https://user-images.githubusercontent.com/105510128/200173970-1ecc26e4-fa7c-461f-bf1b-f25fb4a28617.png)
- 
- 
- (https://user-images.githubusercontent.com/105510128/200173986-2871645c-701f-4ddd-aa5b-0ece9d64b8df.png)
+  ![diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200174746-7a07f62b-af4c-48bd-9d2c-1b373c0e412c.png)
+
 ------------
 * ## 프로젝트 참여 인원
   > 2명 
