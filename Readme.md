@@ -16,6 +16,8 @@
   5. Axio
 ------------
 * ## 시스템 구조도
+![image](https://user-images.githubusercontent.com/105510128/200186847-38687f5c-1cab-4c7e-890e-4c35dc2d9a21.png)
+
 ------------
 * ## ERD 다이어그램
   ![diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200174746-7a07f62b-af4c-48bd-9d2c-1b373c0e412c.png)
