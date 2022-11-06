@@ -13,15 +13,9 @@
   5. FontAwesome
   6. composition-api
 ------------
-* ## 기능 설명
-  > 이모티콘 제안자가 되어 스토어에 등록할 이모티콘을 제안할 수 있는 페이지
-  
-  * 이모티콘 제안자 (판매자)   
-    1. 제안할 이모티콘 18종 선택 후 제안 
-    2. 제안된 이모티콘 리스트 확인
-    3. 공지사항
-  * 공용
-    1. FAQ   
+* ## ERD 다이어그램
+ [diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200173970-1ecc26e4-fa7c-461f-bf1b-f25fb4a28617.png)
+ ![diary 다이어그램2](https://user-images.githubusercontent.com/105510128/200173986-2871645c-701f-4ddd-aa5b-0ece9d64b8df.png)
 ------------
 * ## 프로젝트 참여 인원
   > 2명 
