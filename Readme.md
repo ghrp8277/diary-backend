@@ -15,7 +15,7 @@
 ------------
 * ## ERD 다이어그램
  [diary 다이어그램1](https://user-images.githubusercontent.com/105510128/200173970-1ecc26e4-fa7c-461f-bf1b-f25fb4a28617.png)
- ![diary 다이어그램2](https://user-images.githubusercontent.com/105510128/200173986-2871645c-701f-4ddd-aa5b-0ece9d64b8df.png)
+ [diary 다이어그램2](https://user-images.githubusercontent.com/105510128/200173986-2871645c-701f-4ddd-aa5b-0ece9d64b8df.png)
 ------------
 * ## 프로젝트 참여 인원
   > 2명 
